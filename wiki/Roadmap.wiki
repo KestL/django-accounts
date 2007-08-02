@@ -6,13 +6,14 @@ This page contains an outline of the features we need to implement for the first
 
 = Details =
     
-Profile Section:
+*Profile Section:*
     Allows People to edit their profile information.
-    Done:
+
+    _Done:_
         * Edit profile 
         * Change password 
-    Todo:
+
+    _Todo:_
         * Text in *bold* or _italic_
         * Headings, paragraphs, and lists
         * Automatic links to other wiki pages
-
