@@ -16,8 +16,8 @@ Items listed as done include unit tests.
         * Replace stub templates with working templates 
     _To Consider:_
         * As it is, the user can be given permission to
-          edit their full profile, or be denied permission
-          to edit it. Do we need attribute-specific permissions?
+        edit their full profile, or be denied permission
+        to edit it. Do we need attribute-specific permissions?
           
 
 *Person admin section for account owner:*
@@ -45,10 +45,10 @@ Items listed as done include unit tests.
     _To Do:_
         * Write SubscriptionBase class.  
         * Write decorators or middleware to prohibit requests
-          that would result in exceeding the resource limit.
+        that would result in exceeding the resource limit.
         * Write templates.
         * Write template tags for displying content based on
-          subscription level.
+        subscription level.
         * View: Show current subscription level
         * View: Show menu of all subscription levels.
 
@@ -71,7 +71,7 @@ Items listed as done include unit tests.
     _Done:_
         * Login, logout, reset password
         * Allow or deny access to urls based on login status,
-          role, or account (domain name)
+        role, or account (domain name)
     _To Do:_
         * Replace stub templates with working templates 
         
@@ -107,3 +107,9 @@ Items listed as done include unit tests.
 
     
     
+
+        
+
+
+
+
