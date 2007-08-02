@@ -1,0 +1,18 @@
+#labels Phase-Requirements
+#Roadmap for initial development
+= Introduction =
+
+This page contains an outline of the features we need to implement for the first working version of the accounts app.
+
+= Details =
+    
+Profile Section:
+    Allows People to edit their profile information.
+    Done:
+        * Edit profile 
+        * Change password 
+    Todo:
+        * Text in *bold* or _italic_
+        * Headings, paragraphs, and lists
+        * Automatic links to other wiki pages
+
