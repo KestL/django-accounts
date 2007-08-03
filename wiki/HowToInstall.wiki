@@ -1,0 +1,56 @@
+#summary How to install the account application
+#labels Featured
+
+= Introduction =
+
+The account application is set up as described in: http://code.djangoproject.com/wiki/BestPracticesToWorkWith3rdPartyAppsAndMakingYoursPortable
+
+*Steps:*
+  # Do the checkout 
+    {{{
+svn checkout http://django-accounts.googlecode.com/svn/trunk/
+    }}} 
+  # Disable the default session middleware in your project's setup.py
+    {{{
+#'django.contrib.sessions.middleware.SessionMiddleware',
+    }}}
+  # Add the following to your project's setup.py
+    {{{
+DEVELOPMENT = True 
+if DEVELOPMENT: 
+    import sys 
+    sys.path.append('C:/web/shared') # Use the directory where /account lives
+
+PERSISTENT_SESSION_KEY = 'sessionpersistent'
+SESSION_COOKIE_AGE = 120960
+
+MIDDLEWARE_CLASSES = (
+    ... < other middleware >...
+    'account.middleware.DualSessionMiddleware',
+    'account.middleware.AccountBasedAuthentication',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    ... < other processors >...
+    "account.middleware.add_account_to_context",
+)    
+INSTALLED_APPS = (
+    ... < other apps >...
+    'account',
+)
+TEMPLATE_DIRS = (
+    ... < other dirs >...
+    "C:/web/shared/account/templates", # Use your actual directory
+)
+
+    }}}
+
+  # If you use modpython, add c:/web/shared (or your actual path) to the pythonpath in apache your apache configuration file.
+
+  # Add the following line to your project's urls.py file
+    {{{
+(r'^person/', include('account.person_urls')),
+    }}}  
+
+
+
