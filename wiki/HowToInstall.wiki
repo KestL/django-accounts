@@ -5,6 +5,8 @@
 
 The account application is set up as described in: http://code.djangoproject.com/wiki/BestPracticesToWorkWith3rdPartyAppsAndMakingYoursPortable
 
+The following steps assume you put the 'account' module in the directory 'c:\web\shared\'. If you use another directory, just substitute.
+
 *Steps:*
   # Do the checkout 
     {{{
@@ -44,9 +46,7 @@ TEMPLATE_DIRS = (
 )
 
     }}}
-
   # If you use modpython, add c:/web/shared (or your actual path) to the pythonpath in apache your apache configuration file.
-
   # Add the following line to your project's urls.py file
     {{{
 (r'^person/', include('account.person_urls')),
