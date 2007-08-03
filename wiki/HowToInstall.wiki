@@ -21,8 +21,8 @@ svn checkout http://django-accounts.googlecode.com/svn/trunk/
 DEVELOPMENT = True 
 if DEVELOPMENT: 
     import sys 
-    sys.path.append('C:/web/shared') # Use the directory where /account lives
-
+    sys.path.append('C:/web/shared') # Use your actual directory
+)
 PERSISTENT_SESSION_KEY = 'sessionpersistent'
 SESSION_COOKIE_AGE = 120960
 
@@ -51,6 +51,5 @@ TEMPLATE_DIRS = (
     {{{
 (r'^person/', include('account.person_urls')),
     }}}  
-
 
 
