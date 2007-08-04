@@ -3,7 +3,7 @@ import django.contrib.auth.models
 from django.utils.encoding import smart_str
 import sha
 import random
-from account import Account
+from accounts import Account
 from role import Role
 from parser import SimpleRoleParser
 
@@ -53,6 +53,8 @@ class Person(models.Model):
         related_name = 'person_set',
         blank = True,
     ) 
+    
+ 
     
     def __unicode__(self):
         return self.username
