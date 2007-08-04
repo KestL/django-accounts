@@ -4,7 +4,8 @@
         "model": "account.Account", 
         "fields": {
             "domain": "starr.localhost.com", 
-            "name": "Starr's website"
+            "name": "Starr's website",
+            "subscription_level_id": 1 
         }
     }, 
     {
@@ -12,7 +13,8 @@
         "model": "account.Account", 
         "fields": {
             "domain": "kristi.localhost.com", 
-            "name": "Kristi's website"
+            "name": "Kristi's website",
+            "subscription_level_id": 2 
         }
     } 
 ]
