@@ -2,6 +2,7 @@ from django.http import HttpResponse, Http404, HttpResponseForbidden
 from models import Account, Person
 from django.core.exceptions import ObjectDoesNotExist
 import views.authentication
+import views.subscription
 from django.conf import settings
 from django.contrib.sessions.models import Session
 from django.contrib.sessions.middleware import SessionWrapper
@@ -47,6 +48,10 @@ class AccountBasedAuthentication(object):
         meta['requires_logout'] == True: 
             show view only if person is not logged in 
         
+        meta['requires_resource'] == 'widget': 
+            show view only if account has 'widget' resources.
+            Redirects to upgrade screen if not.
+            
         meta['roles'] == 'role1 & (role2 | role 3)':
             Show view if person is logged in &
             has role1 and either role2 or role3
@@ -57,7 +62,8 @@ class AccountBasedAuthentication(object):
         if 'meta' not in view_kwargs:
             return None
         
-        if not getattr(request, 'account', None):
+        account = getattr(request, 'account', None)
+        if not account:
             raise Http404
         
         meta = view_kwargs.pop('meta')
@@ -73,6 +79,11 @@ class AccountBasedAuthentication(object):
         if meta.get('requires_login') and not person:
             return helpers.redirect(
                 views.authentication.login
+            )
+        
+        if not account.has_resource(meta.get('requires_resource')):
+            return helpers.redirect(
+                views.subscription.upgrade
             )
         
         if not person:
