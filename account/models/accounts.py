@@ -17,6 +17,11 @@ class Account(models.Model):
         unique = True,
     )
     
+    timezone = models.CharField(
+        maxlength = 20,
+        default = 'utc',
+    )
+    
     name = models.CharField(
         verbose_name = "Account Name",
         maxlength = 40,
@@ -50,6 +55,8 @@ class Account(models.Model):
     
         
     def has_resource(self, resource_name):
+        if not resource_name:
+            return True
         resource = self.subscription_level['resources'][resource_name]
         if resource is subscription.Unlimited:
             return True
