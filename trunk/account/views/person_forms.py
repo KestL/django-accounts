@@ -96,8 +96,76 @@ class ChangePasswordForm(forms.Form):
                 "The two passwords didn't match. Please try again."
             )
         return self.cleaned_data
-                
+    
+    
+class SignupForm(forms.Form):
+    first_name = forms.CharField(
+        label = "First name",
+        min_length = 2,
+        max_length = 30,        
+    )
+    last_name = forms.CharField(
+        label = "Last name",
+        min_length = 2,
+        max_length = 30,        
+    )
+    email = forms.EmailField(
+        label = "Email",
+    )
+    username = forms.CharField(
+        label = "Username",
+        help_text = "You'll use this to log in",
+        min_length = 4,
+        max_length = 30,        
+    )
+    password = forms.CharField(
+        label = "Password",
+        min_length = 6,
+        max_length = 20,
+        widget = forms.PasswordInput()
+    )
+    password2 = forms.CharField(
+        label = "Password again",
+        help_text = "Confirm your password by entering it again",
+        min_length = 6,
+        max_length = 20,
+        widget = forms.PasswordInput()
+    )
+    group = forms.CharField(
+        label = "Company / Organization",
+        min_length = 2,
+        max_length = 30,        
+    )
+    timezone = forms.ChoiceField(
+        label = "Time zone",
+        choices = enumerate(['central', 'eastern', 'etc'])
+    )
+    subdomain = forms.CharField(
+        min_length = 2,
+        max_length = 30,        
+    )
+    domain = forms.ChoiceField(
+        choices = enumerate(settings.ACCOUNT_DOMAINS)
+    )
             
+    card_type = forms.ChoiceField(
+        label = "Card type",
+        choices = enumerate(['Visa', 'Mastercard', 'American Express'])
+    )
+    
+    card_number = forms.CharField(
+        label = "Card number",
+        min_length = 10,
+        max_length = 20,        
+    )
+    card_expiration = forms.DateField(
+        label = "Expiration",
+    )
+
+    terms_of_service = forms.BooleanField(
+        label = "I agree to the Terms of Service, Refund, and Privacy policies"
+    )
+        
         
     
     
