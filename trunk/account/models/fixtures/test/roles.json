@@ -13,6 +13,21 @@
         "fields": {
             "name": "admin"
         }
-    }
+    },
     
+    {
+        "pk": "12", 
+        "model": "account.Role", 
+        "fields": {
+            "name": "employee"
+        }
+    },
+    
+    {
+        "pk": "13", 
+        "model": "account.Role", 
+        "fields": {
+            "name": "consultant"
+        }
+    }
 ]

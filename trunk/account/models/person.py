@@ -4,6 +4,7 @@ from django.utils.encoding import smart_str
 import sha
 import random
 from accounts import Account
+from group import Group
 from role import Role
 from parser import SimpleRoleParser
 
@@ -30,7 +31,11 @@ class Person(models.Model):
         to = Account,
         editable = False,
     )
-    
+    group = models.ForeignKey(
+        to = Group,
+        blank = True,
+        null = True,
+    )
     first_name = models.CharField(
         maxlength = 40,
     )    
@@ -145,6 +150,9 @@ class Person(models.Model):
         """
         if not roles_string:
             return True
+        if self.group:
+            if self.group.has_roles(roles_string):
+                return True
         p=SimpleRoleParser(roles_string)
         r=[role.name for role in self.role_set.all()]
         return p.has_roles(r)        

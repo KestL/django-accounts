@@ -1,12 +1,18 @@
 from django.test import TestCase
-from account.models import Person, Account, Role
+from account.models import Person, Account, Role, Group
 
 class MockRequest:
     def __init__(self):
         self.session = {}
 
 class PersonTests(TestCase):
-    fixtures = ['test/accounts.json', 'test/people.json', 'test/roles.json']
+    fixtures = [
+        'test/accounts.json', 
+        'test/people.json', 
+        'test/groups.json', 
+        'test/roles.json',
+    ]
+    
     def setUp(self):
         self.person_one = Person.objects.get(username = 'snhorne')
         admin_role=Role.objects.get(name='admin')
@@ -14,7 +20,7 @@ class PersonTests(TestCase):
         self.person_one.role_set.add(admin_role)
         self.person_one.role_set.add(admin_guest)
 
-    # Roles tests
+        
     def test_has_admin_role(self):
         self.assertTrue(
             self.person_one.has_roles('admin&guest')
@@ -134,4 +140,3 @@ class PersonTests(TestCase):
             Person.load_from_request(request),
             None,
         )
-
