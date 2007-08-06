@@ -13,4 +13,13 @@ urlpatterns = patterns('',
             },
         }
     ),
+    (
+        r'^create/(\d+)/$', 
+        _sub('create'), 
+        {
+            'meta': {
+                'requires_account': False,
+            },
+        }
+    ),
 )

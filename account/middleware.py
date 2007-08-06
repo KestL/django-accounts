@@ -42,6 +42,9 @@ class AccountBasedAuthentication(object):
         
         The rules are:
         
+        meta['requires_account'] == False: 
+            show view only if account is not present
+        
         meta['requires_login'] == True: 
             show view only if person is logged in
         
@@ -62,11 +65,18 @@ class AccountBasedAuthentication(object):
         if 'meta' not in view_kwargs:
             return None
         
-        account = getattr(request, 'account', None)
-        if not account:
-            raise Http404
-        
         meta = view_kwargs.pop('meta')
+        
+        account = getattr(request, 'account', None)
+        
+        if meta.get('requires_account', True):
+            if not account:
+                raise Http404
+        else:
+            if account:
+                raise Http404
+            else:
+                return None
         
         if 'roles' in meta:
             meta['requires_login'] = True
