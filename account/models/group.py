@@ -50,9 +50,3 @@ class Group(models.Model):
         return p.has_roles(r)        
         
         
-                
-        
-        
-        
-        
-        
