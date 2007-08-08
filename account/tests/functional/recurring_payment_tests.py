@@ -4,34 +4,9 @@ from django.test import TestCase
 from account.models import Person, Account, Role, RecurringPayment
 from account.models import recurring_payment
 from account.lib.payment.errors import PaymentRequestError, PaymentResponseError
+from account.tests.mocks.payment_gateway import MockGateway
 
-class MockGateway:
-    """
-    A mock gateway so that we don't have to call the
-    real gateway during testing.
-    """
-    def start_payment(self, **kwargs):
-        self.start_payment_called = True
-        return self._respond(kwargs['error'], '1000')
-    
-    def change_payment(self, **kwargs):
-        self.change_payment_called = True
-        return self._respond(kwargs['error'], True)
-    
-    def cancel_payment(self, **kwargs):
-        self.cancel_payment_called = True
-        return self._respond(kwargs['error'], True)
-    
-    def _respond(self, error, value):
-        if not error:
-            return value
-        else:
-            raise error('')
-        
-    def reset(self):
-        self.start_payment_called = False
-        self.change_payment_called = False
-        self.cancel_payment_called = False
+
 
 class RecurringPaymentTests(TestCase):
     fixtures = ['test/accounts.json', 'test/people.json', 'test/roles.json']
@@ -45,7 +20,7 @@ class RecurringPaymentTests(TestCase):
             account = account, 
             amount = '29.99', 
             card_number = '4111111111111111', 
-            card_expires = '2008-10', 
+            card_expires = date.today(), 
             first_name = 'Bob', 
             last_name = 'Jones',
             error = None,
@@ -71,7 +46,7 @@ class RecurringPaymentTests(TestCase):
                 account = account, 
                 amount = '', 
                 card_number = '', 
-                card_expires = '', 
+                card_expires = date.today(), 
                 first_name = '', 
                 last_name = '',
                 error = PaymentRequestError,

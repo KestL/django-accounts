@@ -10,6 +10,9 @@ class AccountTests(TestCase):
         Define subscription levels. This overrides
         the levels defined in your settings.py file. 
         """
+        #TODO: make this test use the subscription levels
+        #      defined in account/tests/mocks/subscription_levels.py
+        self.old_sub_levels = settings.SUBSCRIPTION_LEVELS
         self.gold = {
                'name': 'Gold Membership',
                'description': 'The gold membership is for...',
@@ -52,6 +55,9 @@ class AccountTests(TestCase):
         Account.disk_used = lambda a: 1000
         Account.projects_count = lambda a: 65535
         
+    def tearDown(self):
+        #TODO: remove this hack
+        settings.SUBSCRIPTION_LEVELS = self.old_sub_levels
         
     def make_account(self, level=1, people=1):
         """

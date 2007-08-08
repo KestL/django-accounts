@@ -6,6 +6,11 @@ from account.models import Person, Account
 
 class Void: pass
 
+def breakpoint(client, response, testcase):
+    import pdb
+    pdb.set_trace()
+    
+    
 def logged_in(client, response, testcase):
     """ Check that the default person is logged in """
     person = Person.objects.get(username = 'snhorne')
@@ -52,6 +57,17 @@ def redirected(path):
     def was_redirected(client, response, testcase):
         testcase.assertRedirects(response, path)
     return was_redirected
+
+def redirected_to_url(url):
+    """ Checks for redirection to a whole url, not just a path """
+    def was_redirected(client, response, testcase):
+        status(302)(client, response, testcase)
+        testcase.assertEqual(
+            response['Location'],
+            url
+        )
+    return was_redirected
+    
     
 def context(key, value = Void, type = Void):
     """ Check that a key exists in context w/ matching value """
@@ -127,21 +143,18 @@ def created(ModelClass):
         )
     return check_created
     
-def does_not_exist(ModelClass, pk):
+def does_not_exist(ModelClass, **kwargs):
     def check_exist(client, response, testcase):
         try:
-            ModelClass.objects.get(pk=pk)
+            ModelClass.objects.get(**kwargs)
             raise False
         except ModelClass.DoesNotExist:
             pass
     return check_exist
     
-def exists(ModelClass, pk):
+def exists(ModelClass, **kwargs):
     def check_exist(client, response, testcase):
-        try:
-            ModelClass.objects.get(pk=pk)
-        except ModelClass.DoesNotExist:
-            raise False
+        ModelClass.objects.get(**kwargs)
     return check_exist
 
 
