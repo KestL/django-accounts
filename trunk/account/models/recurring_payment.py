@@ -52,15 +52,16 @@ class RecurringPayment(models.Model):
     def create(cls, account, amount, card_number, card_expires, first_name, last_name, period=1, **kwargs):
         
         token = str(account.id)
+        amount = str(amount)
         
         gateway_token = gateway.start_payment(
             url = settings.PAYMENT_GATEWAY_URL,
             login = settings.PAYMENT_GATEWAY_LOGIN,
             password = settings.PAYMENT_GATEWAY_PASSWORD,
             token = token,
-            amount = amount,
+            amount = amount[:-2] + '.' + amount[-2:],
             card_number = card_number,
-            card_expires = card_expires,
+            card_expires = card_expires.strftime('Y-m'),
             first_name = first_name,
             last_name = last_name,
             period = period, 

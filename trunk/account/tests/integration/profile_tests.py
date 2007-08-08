@@ -236,7 +236,7 @@ class ProfileTests(IntegrationTest):
                 causes.valid_domain,
             ],
             [
-                effects.does_not_exist(Person, 1),
+                effects.does_not_exist(Person, id = 1),
                 effects.redirected('/person/list/')
             ]
         )
@@ -249,7 +249,7 @@ class ProfileTests(IntegrationTest):
                 causes.valid_domain,
             ],
             [
-                effects.exists(Person, 2),
+                effects.exists(Person, id = 2),
                 effects.status(403)
                 
             ]

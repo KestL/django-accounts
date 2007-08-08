@@ -7,6 +7,11 @@ def _remove(collection, key):
     except KeyError:
         pass
     
+def breakpoint(client, parameters):
+    import pdb; pdb.set_trace()
+    return client, parameters
+               
+               
 def person_logged_in(client, parameters):
     """ Logs in the default person. """
     client.post(
@@ -56,6 +61,10 @@ def no_domain(client, parameters):
     """ Clears any domain """
     _remove(client.defaults, 'HTTP_HOST')
     return client, parameters
+
+def no_parameters(client, parameters):
+    """ Clears params """
+    return client, {}
 
 def valid_username(client, parameters):
     """ Sets a valid username """
