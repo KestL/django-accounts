@@ -159,6 +159,11 @@ def exists(ModelClass, **kwargs):
 
 
 
+def count(n, ModelClass, **kwargs):
+    def check_count(client, response, testcase):
+        assert ModelClass.objects.filter(**kwargs).count() == n
+    return check_count
+
 
 
 

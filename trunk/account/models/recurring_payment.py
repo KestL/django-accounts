@@ -36,6 +36,7 @@ class RecurringPayment(models.Model):
     
     account = models.ForeignKey(
         to = Account, 
+        related_name = 'recurring_payment_set',
         unique = True
     )
     
@@ -47,6 +48,7 @@ class RecurringPayment(models.Model):
     created_on = models.DateField(
         auto_now_add = True,
     )
+    
     
     @classmethod
     def create(cls, account, amount, card_number, card_expires, first_name, last_name, period=1, **kwargs):
@@ -77,7 +79,6 @@ class RecurringPayment(models.Model):
             gateway_token = gateway_token,
             token = token
         )
-        obj.save()
         return obj
         
     def change_amount(self, amount, **kwargs):
@@ -90,7 +91,6 @@ class RecurringPayment(models.Model):
             **kwargs
         )
         self.amount = '$' + amount
-        self.save()
         
     def cancel(self, **kwargs):
         gateway.cancel_payment(
@@ -101,7 +101,6 @@ class RecurringPayment(models.Model):
             **kwargs
         )
         self.cancelled_at = datetime.now()
-        self.save()
         
     
     def is_active(self):

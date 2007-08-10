@@ -49,6 +49,21 @@ class Account(models.Model):
         default = 0,
     )   
     
+    def _get_recurring_payment(self):
+        """
+        This is a hack to avoid 1-to-1 relationship, since that
+        will supposedly be changing soon.
+        """
+        try:
+            return self.recurring_payment_set.all()[0]
+        except IndexError:
+            return None
+        
+    def _set_recurring_payment(self, value):
+        self.recurring_payment_set.add(value)        
+        
+    recurring_payment = property(_get_recurring_payment, _set_recurring_payment)
+        
     @property
     def subscription_level(self):
         return settings.SUBSCRIPTION_LEVELS[self.subscription_level_id]

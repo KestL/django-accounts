@@ -3,61 +3,10 @@ from django.contrib.auth.models import User
 from account.models import Account
 from account import subscription
 from django.conf import settings
+from account.tests.mocks import subscription_levels
 
 class AccountTests(TestCase):
-    def setUp(self):
-        """
-        Define subscription levels. This overrides
-        the levels defined in your settings.py file. 
-        """
-        #TODO: make this test use the subscription levels
-        #      defined in account/tests/mocks/subscription_levels.py
-        self.old_sub_levels = settings.SUBSCRIPTION_LEVELS
-        self.gold = {
-               'name': 'Gold Membership',
-               'description': 'The gold membership is for...',
-               'first_month_price': 20000,
-               'recurring_price': 20000,
-               'period': 30,
-               'trial': 30,
-               'resources': {
-                   'people': 10,
-                   'disk': 10000,
-                   'chat': True,
-                   'ssl': True,
-                   'projects': subscription.Unlimited,
-               }
-        }
-        self.silver = {
-               'name': 'Silver Membership',
-               'description': 'The silver membership is for...',
-               'first_month_price': 10000,
-               'recurring_price': 10000,
-               'period': 30,
-               'trial': 30,
-               'resources': {
-                   'people': 3,
-                   'disk': 1000,
-                   'chat': True,
-                   'ssl': False,
-                   'projects': 3,
-               }
-        }
-        settings.SUBSCRIPTION_LEVELS = (
-            self.gold, 
-            self.silver,
-        )
-        settings.SUBSCRIPTION_REGULATORS = {
-            'people': subscription.count('account', 'Person'),
-            'disk': subscription.class_method('account', 'Account', 'disk_used'),
-            'projects': subscription.class_method('account', 'Account', 'projects_count')
-        }   
-        Account.disk_used = lambda a: 1000
-        Account.projects_count = lambda a: 65535
         
-    def tearDown(self):
-        #TODO: remove this hack
-        settings.SUBSCRIPTION_LEVELS = self.old_sub_levels
         
     def make_account(self, level=1, people=1):
         """
@@ -85,7 +34,7 @@ class AccountTests(TestCase):
         in setUp()
         """
         account = self.make_account(level = 1, people = 2)
-        assert account.subscription_level == self.silver
+        assert account.subscription_level == settings.SUBSCRIPTION_LEVELS[1]
         assert not account.has_resource('ssl')
         assert not account.has_resource('disk')
         assert not account.has_resource('projects')
@@ -97,8 +46,8 @@ class AccountTests(TestCase):
         Tests one of the subscription levels defined
         in setUp()
         """
-        account = self.make_account(level = 0, people = 10)
-        assert account.subscription_level == self.gold
+        account = self.make_account(level = 2, people = 10)
+        assert account.subscription_level == settings.SUBSCRIPTION_LEVELS[2]
         assert account.has_resource('ssl')
         assert account.has_resource('disk')
         assert account.has_resource('projects')

@@ -15,6 +15,7 @@ from account.lib.payment.errors import PaymentRequestError, PaymentResponseError
 
 from account.tests.mocks import subscription_levels
 CREATE_PATH = '/account/create/%i/'
+CHANGE_PM_PATH = '/account/change_payment_method/'
 
     
 class SubscriptionTests(IntegrationTest):
@@ -179,3 +180,109 @@ class SubscriptionTests(IntegrationTest):
                 effects.status(200)
             ]
         )
+        
+        
+        
+        
+    def test_change_payment_method(self):
+        """
+        """
+        security.check(self, CHANGE_PM_PATH)
+        
+        self.assertState(
+            'GET/POST',
+            CHANGE_PM_PATH,
+            [
+                causes.valid_domain,
+                causes.owner_logged_in,
+                causes.no_parameters,
+            ],
+            [
+                effects.rendered('account/payment_method_form.html'),
+                effects.status(200)
+            ]
+        )
+        
+            
+        self.assertState(
+            'POST',
+            CHANGE_PM_PATH,
+            [
+                causes.valid_domain,
+                causes.owner_logged_in,
+                causes.no_parameters,
+                causes.params(
+                    first_name = 'billy',
+                    last_name = 'bob',                    
+                    card_number = '411111111111',
+                    card_expiration = None
+                )
+            ],
+            [
+                effects.rendered('account/payment_method_form.html'),
+                effects.status(200)
+            ]
+        )
+        
+        # Todo: finish
+        def account_has_no_payment_method(client, parameters):
+            return client, parameters
+        
+        self.assertState(
+            'POST',
+            CHANGE_PM_PATH,
+            [
+                causes.valid_domain,
+                causes.owner_logged_in,
+                causes.no_parameters,
+                causes.params(
+                    first_name = 'billy',
+                    last_name = 'bob',                    
+                    card_number = '411111111111',
+                    card_expiration = date.today()
+                )
+            ],
+            [
+                effects.exists(
+                    RecurringPayment, 
+                    account__domain = 'starr.localhost.com'
+                ),
+                effects.rendered('account/payment_method_form.html'),
+                effects.status(200)
+            ]
+        )
+        
+        def gateway_cancel_called(client, response, testcase):
+            assert recurring_payment.gateway.cancel_payment_called
+            
+        # This state relies on the existance of the payment
+        # created in the state test above..
+        # TODO: make it separate
+        self.assertState(
+            'POST',
+            CHANGE_PM_PATH,
+            [
+                causes.valid_domain,
+                causes.owner_logged_in,
+                causes.no_parameters,
+                causes.params(
+                    first_name = 'billy',
+                    last_name = 'bob',                    
+                    card_number = '411111111111',
+                    card_expiration = date.today()
+                )
+            ],
+            [
+                gateway_cancel_called,
+                effects.exists(
+                    RecurringPayment, 
+                    account__domain = 'starr.localhost.com'
+                ),
+                effects.count(1, RecurringPayment, name = 'billy bob'),
+                effects.rendered('account/payment_method_form.html'),
+                effects.status(200)
+            ]
+        )
+        
+        
+        
