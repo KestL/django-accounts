@@ -22,4 +22,14 @@ urlpatterns = patterns('',
             },
         }
     ),
+    (
+        r'^change_payment_method/$', 
+        _sub('change_payment_method'), 
+        {
+            'meta': {
+                'requires_login': True,
+                'roles': 'account_admin',
+            },
+        }
+    ),
 )

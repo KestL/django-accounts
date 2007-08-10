@@ -99,7 +99,64 @@ class ChangePasswordForm(forms.Form):
         return self.cleaned_data
     
     
-class SignupForm(forms.Form):
+class SavesPayment(object):
+    def _get_requires_payment(self):
+        return  getattr(self, '_requires_payment', True)
+    
+    def _set_requires_payment(self, value):
+        self._requires_payment = value
+        
+    requires_payment = property(_get_requires_payment, _set_requires_payment)
+
+    def save_payment(self, account, subscription_level, commit=True):
+        if not self.requires_payment:
+            return None
+        try:
+            obj = RecurringPayment.create(
+                account = account, 
+                amount = subscription_level['price'], 
+                card_number = self.cleaned_data['card_number'], 
+                card_expires = self.cleaned_data['card_expiration'], 
+                first_name = self.cleaned_data['first_name'],
+                last_name = self.cleaned_data['last_name'],
+            )
+            if commit:
+                obj.save()
+            return obj
+        
+        except PaymentRequestError:
+            # The payment gateway rejected our request.
+            self._errors['__all__'] = "We were unable to verify your payment info. Did you mistype something?"
+            raise    
+
+    def clean_card_expiration(self):
+        if not self.requires_payment:
+            return None
+        from datetime import date
+        try:
+            if self.cleaned_data['card_expiration'] < date.today():
+                raise forms.ValidationError(
+                    "Your card expiration can't be before todays date."
+                )
+        except TypeError:
+            raise forms.ValidationError(
+                "Your card expiration was not a valid date."
+            )
+            
+        return self.cleaned_data['card_expiration']
+    
+    def clean_card_type(self):
+        if not self.requires_payment:
+            return None
+        return self.cleaned_data['card_type']
+        
+    def clean_card_number(self):
+        if not self.requires_payment:
+            return None
+        return self.cleaned_data['card_number']
+
+    
+class SignupForm(forms.Form, SavesPayment):
     def __init__(self, requires_payment, *args, **kwargs):
         self.requires_payment = requires_payment
         forms.Form.__init__(self, *args, **kwargs)
@@ -153,11 +210,11 @@ class SignupForm(forms.Form):
         choices = enumerate(settings.ACCOUNT_DOMAINS)
     )
             
-    card_type = forms.ChoiceField(
-        label = "Card type",
-        choices = enumerate(['Visa', 'Mastercard', 'AmericanExpress']),
-        required = False,
-    )
+    #card_type = forms.ChoiceField(
+        #label = "Card type",
+        #choices = enumerate(['Visa', 'Mastercard', 'AmericanExpress']),
+        #required = False,
+    #)
     
     card_number = forms.CharField(
         label = "Card number",
@@ -187,31 +244,6 @@ class SignupForm(forms.Form):
             )
         return self.cleaned_data['subdomain']
     
-    def clean_card_expiration(self):
-        if not self.requires_payment:
-            return None
-        from datetime import date
-        try:
-            if self.cleaned_data['card_expiration'] < date.today():
-                raise forms.ValidationError(
-                    "Your card expiration can't be before todays date."
-                )
-        except TypeError:
-            raise forms.ValidationError(
-                "Your card expiration was not a valid date."
-            )
-            
-        return self.cleaned_data['card_expiration']
-    
-    def clean_card_type(self):
-        if not self.requires_payment:
-            return None
-        return self.cleaned_data['card_type']
-        
-    def clean_card_number(self):
-        if not self.requires_payment:
-            return None
-        return self.cleaned_data['card_number']
     
     def clean_terms_of_service(self):
         if not self.cleaned_data['terms_of_service']:
@@ -263,39 +295,26 @@ class SignupForm(forms.Form):
         else:
             raise ValueError
                     
+
+class PaymentForm(forms.Form, SavesPayment):
+
+    first_name = forms.CharField(
+        label = "First name",
+        min_length = 2,
+        max_length = 30,        
+    )
+    last_name = forms.CharField(
+        label = "Last name",
+        min_length = 2,
+        max_length = 30,        
+    )
+    card_number = forms.CharField(
+        label = "Card number",
+    )
+    card_expiration = forms.DateField(
+        label = "Expiration",
+    )
     
-    def save_payment(self, account, subscription_level):
-        if not self.requires_payment:
-            return None
-        
-        try:
-            return RecurringPayment.create(
-                account = account, 
-                amount = subscription_level['price'], 
-                card_number = self.cleaned_data['card_number'], 
-                card_expires = self.cleaned_data['card_expiration'], 
-                first_name = self.cleaned_data['first_name'],
-                last_name = self.cleaned_data['last_name'],
-            )
-        except PaymentRequestError:
-            # The payment gateway rejected our request.
-            self._errors['__all__'] = "We were unable to verify your payment info. Did you mistype something?"
-            raise
-
-
-            
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
