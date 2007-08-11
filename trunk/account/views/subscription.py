@@ -6,9 +6,46 @@ from person_forms import SignupForm, PaymentForm
 from .. import helpers
 from ..models import Account, Person, RecurringPayment
 from account.lib.payment.errors import PaymentRequestError, PaymentResponseError
+from django.core import mail
 
 def upgrade(request):
     return HttpResponse('upgrade')
+
+def _email_cancel_error_to_admin(account, old_payment, new_payment=None):
+    mail.mail_admins(
+        "! Payment Cancel Error", 
+        """
+        There was an error canceling payment for %s.
+        Account Id: %i
+        Old Payment Gateway Token: %s
+        New Payment Gateway Token: %s
+        
+        This should NOT ever happen unless there is a problem with
+        the gateway interface on your end, or the payment gateway 
+        changed their API.
+        """ % (
+            account.name,
+            account.id,
+            old_payment.gateway_token,
+            getattr(new_payment, 'gateway_token', '(no new payment)')
+            )
+    )
+    
+def _email_create_error_to_admin(account=None):
+    mail.mail_admins(
+        "! Payment Create Error", 
+        """
+        There was an error canceling payment for %s.
+        Account Id: %s
+        
+        This should NOT ever happen unless there is a problem with
+        the gateway interface on your end, or the payment gateway 
+        changed their API.
+        """ % (
+            getattr(account, 'name', '(No account yet)'),
+            str(getattr(account, 'id', '(No account yet)')),
+            )
+    )
 
 def change_payment_method(request):
     if request.method == 'POST':
@@ -35,11 +72,23 @@ def change_payment_method(request):
                     if old_payment: 
                         old_payment.cancel()
                 except (PaymentResponseError, HttpResponseServerError):
-                    # Possibly add more user-friendly error message.
-                    return HttpResponseServerError()
+                    _email_cancel_error_to_admin(
+                        request.account,
+                        old_payment, 
+                        new_payment
+                    )
+                    return helpers.render(
+                        request,
+                        'account/payment_cancel_error.html',
+                        {'recurring_payment': old_payment}
+                    )
                 
             except PaymentResponseError:
-                return HttpResponseServerError()
+                _email_create_error_to_admin(request.account)
+                return helpers.render(
+                    request,
+                    'account/payment_create_error.html'
+                )
             
             except PaymentRequestError:
                 pass
@@ -89,10 +138,15 @@ def create(request, level):
                     
             except PaymentResponseError:
                 # The payment gateway returned an unknown response.
-                return HttpResponseServerError()
+                _email_create_error_to_admin()
+                return helpers.render(
+                    request,
+                    'account/payment_create_error.html'
+                )
             
             except PaymentRequestError:
                 # The payment gateway rejected our request.
+                # Most likely a user input error.
                 pass
     else:
         form = SignupForm(

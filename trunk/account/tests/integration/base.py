@@ -1,4 +1,5 @@
 from django.test import TestCase, Client
+from django.core import mail
 
 class IntegrationTest(TestCase):
     def assertState(self, method, path, causes, effects):
@@ -27,6 +28,7 @@ class IntegrationTest(TestCase):
         def run(request_method):
             self.client = Client()
             parameters = {}
+            mail.outbox = []        
             
             for cause in causes:
                 self.client, parameters = cause(self.client, parameters)
