@@ -114,7 +114,7 @@ class RecurringPaymentTests(TestCase):
         assert not payment.is_expired()
         
         payment.period = 1
-        payment.created_on = date(2007, 3, 19)
+        payment.active_on = date(2007, 3, 19)
         payment.cancelled_at = datetime(2007, 9, 23)
         assert payment.is_expired(when = datetime(2007, 10, 20))
         assert not payment.is_expired(when = datetime(2007, 10, 19))

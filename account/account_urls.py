@@ -5,11 +5,22 @@ def _sub(method):
 
 urlpatterns = patterns('',
     (
-        r'^upgrade/$', 
+        r'^$', 
+        _sub('edit_account'), 
+        {
+            'meta': {
+                'requires_login': True,
+                'roles': 'account_admin',
+            },
+        }
+    ),
+    (
+        r'^upgrade/(\d+)/$', 
         _sub('upgrade'), 
         {
             'meta': {
                 'requires_login': True,
+                'roles': 'account_admin',
             },
         }
     ),
@@ -25,6 +36,16 @@ urlpatterns = patterns('',
     (
         r'^change_payment_method/$', 
         _sub('change_payment_method'), 
+        {
+            'meta': {
+                'requires_login': True,
+                'roles': 'account_admin',
+            },
+        }
+    ),
+    (
+        r'^cancel_payment_method/$', 
+        _sub('cancel_payment_method'), 
         {
             'meta': {
                 'requires_login': True,

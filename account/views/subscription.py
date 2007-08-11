@@ -1,15 +1,13 @@
-from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseServerError
+from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseServerError, HttpResponseForbidden
 import django.newforms as forms
 from django.conf import settings
 from django.shortcuts import render_to_response
-from person_forms import SignupForm, PaymentForm
+from person_forms import SignupForm, PaymentForm, UpgradeForm
 from .. import helpers
 from ..models import Account, Person, RecurringPayment
 from account.lib.payment.errors import PaymentRequestError, PaymentResponseError
 from django.core import mail
 
-def upgrade(request):
-    return HttpResponse('upgrade')
 
 def _email_cancel_error_to_admin(account, old_payment, new_payment=None):
     mail.mail_admins(
@@ -47,6 +45,11 @@ def _email_create_error_to_admin(account=None):
             )
     )
 
+    
+def edit_account(request):
+    return HttpResponse('edit account')
+    
+    
 def change_payment_method(request):
     if request.method == 'POST':
         form = PaymentForm(request.POST)
@@ -59,7 +62,8 @@ def change_payment_method(request):
                 new_payment = form.save_payment(
                     request.account,
                     request.account.subscription_level,
-                    commit = False
+                    commit = False,
+                    start_date = old_payment and old_payment.next_payment()
                 )
                 
                 # Change the DB records 
@@ -93,8 +97,6 @@ def change_payment_method(request):
             except PaymentRequestError:
                 pass
             
-            
-                
     else:
         form = PaymentForm()
         
@@ -103,6 +105,100 @@ def change_payment_method(request):
         'account/payment_method_form.html', 
         { 'form': form }
     )
+    
+    
+
+def cancel_payment_method(request):
+    payment = request.account.recurring_payment
+    if not payment:
+        raise Http404
+    if request.method == 'POST':
+        try:
+            payment.cancel()
+            payment.save()
+        except (PaymentResponseError, HttpResponseServerError):
+            _email_cancel_error_to_admin(
+                request.account,
+                payment,
+            )
+            return helpers.render(
+                request,
+                'account/payment_cancel_error.html',
+                {'recurring_payment': payment}
+            )
+                
+            
+        return helpers.render(
+            request, 
+            'account/payment_method_form.html', 
+        )
+    else:
+        return helpers.render(
+            request, 
+            'account/payment_cancel_form.html', 
+        )
+        
+    
+    
+def upgrade(request, level):
+    level = int(level)
+    try:
+        subscription_level = settings.SUBSCRIPTION_LEVELS[level]
+    except (IndexError, ValueError):
+        raise Http404
+    
+    account = request.account
+    if account.subscription_level_id == level:
+        return HttpResponseForbidden()
+    
+    payment = request.account.recurring_payment
+    
+    get_card_info = subscription_level.get('price') and not payment
+    
+    if request.method == 'POST':
+        form = UpgradeForm(
+            get_card_info,
+            request.POST,
+        )
+        if form.is_valid():
+            try:
+                if get_card_info:
+                    payment = form.save_payment(account, subscription_level)
+                else:
+                    payment.change_amount(subscription_level['price'])
+                    payment.save()
+                account.subscription_level_id = level
+                account.save()
+                return helpers.redirect(edit_account)
+            
+            except PaymentResponseError:
+                # The payment gateway returned an unknown response.
+                _email_create_error_to_admin()
+                return helpers.render(
+                    request,
+                    'account/payment_create_error.html'
+                )
+            
+            except PaymentRequestError:
+                # The payment gateway rejected our request.
+                # Most likely a user input error.
+                pass
+    else:
+        form = UpgradeForm(
+            get_card_info
+        )
+        
+    return render_to_response(
+        'account/upgrade_form.html', 
+        {'form': form}
+    )
+
+    
+    
+    
+    
+    
+    
     
     
     

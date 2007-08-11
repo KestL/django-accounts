@@ -108,7 +108,7 @@ class SavesPayment(object):
         
     requires_payment = property(_get_requires_payment, _set_requires_payment)
 
-    def save_payment(self, account, subscription_level, commit=True):
+    def save_payment(self, account, subscription_level, start_date=None, commit=True):
         if not self.requires_payment:
             return None
         try:
@@ -119,6 +119,7 @@ class SavesPayment(object):
                 card_expires = self.cleaned_data['card_expiration'], 
                 first_name = self.cleaned_data['first_name'],
                 last_name = self.cleaned_data['last_name'],
+                start_date = start_date
             )
             if commit:
                 obj.save()
@@ -316,7 +317,32 @@ class PaymentForm(forms.Form, SavesPayment):
     )
     
 
-
+class UpgradeForm(forms.Form, SavesPayment):
+    #TODO: Fill in first name if available
+    first_name = forms.CharField(
+        label = "First name",
+        min_length = 2,
+        max_length = 30,        
+        required = False,
+    )
+    last_name = forms.CharField(
+        label = "Last name",
+        min_length = 2,
+        max_length = 30,        
+        required = False,
+    )
+    card_number = forms.CharField(
+        label = "Card number",
+        required = False,
+    )
+    card_expiration = forms.DateField(
+        label = "Expiration",
+        required = False,
+    )
+    
+    def __init__(self, requires_payment, *args, **kwargs):
+        self.requires_payment = requires_payment
+        forms.Form.__init__(self, *args, **kwargs)
 
 
 
