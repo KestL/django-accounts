@@ -48,10 +48,16 @@ class RecurringPayment(models.Model):
     created_on = models.DateField(
         auto_now_add = True,
     )
+    active_on = models.DateField(
+    )
     
+    def save(self, *args, **kwargs):
+        if not self.active_on:
+            self.active_on = date.today()
+        super(RecurringPayment, self).save(*args, **kwargs)
     
     @classmethod
-    def create(cls, account, amount, card_number, card_expires, first_name, last_name, period=1, **kwargs):
+    def create(cls, account, amount, card_number, card_expires, first_name, last_name, period=1, start_date=None,**kwargs):
         
         token = str(account.id)
         amount = str(amount)
@@ -77,11 +83,13 @@ class RecurringPayment(models.Model):
             amount = '$' + amount,
             period = period,
             gateway_token = gateway_token,
-            token = token
+            token = token,
+            active_on = start_date or date.today(),
         )
         return obj
         
     def change_amount(self, amount, **kwargs):
+        amount = str(amount)
         gateway.change_payment(
             url = settings.PAYMENT_GATEWAY_URL,
             login = settings.PAYMENT_GATEWAY_LOGIN,
@@ -110,17 +118,21 @@ class RecurringPayment(models.Model):
         if not self.cancelled_at:
             return False
         
-        from dateutil.rrule import rrule, MONTHLY
-        last_day = rrule(
-            MONTHLY, 
-            dtstart = self.created_on,
-            interval = self.period,
-        ).after(self.cancelled_at)
-        
-        return last_day < (when or datetime.now())
+        return self.final_payment() < (when or datetime.now())
             
+    def final_payment(self):
+        if not self.is_active():
+            return self.next_payment(self.cancelled_at)
         
-    
+    def next_payment(self, after = None):
+        from dateutil.rrule import rrule, MONTHLY
+        return rrule(
+            MONTHLY, 
+            dtstart = self.active_on,
+            interval = self.period,
+        ).after(after or datetime.now())
+        
+        
     
     
     
