@@ -19,6 +19,7 @@ CREATE_PATH = '/account/create/%i/'
 UPGRADE_PATH = '/account/upgrade/%i/'
 CHANGE_PM_PATH = '/account/change_payment_method/'
 CANCEL_PM_PATH = '/account/cancel_payment_method/'
+EDIT_ACCOUNT_PATH = '/account/'
 
     
 ############################
@@ -891,6 +892,78 @@ class SubscriptionTests(IntegrationTest):
         
         
         
+        
+        
+    ############################
+    # Edit account Tests
+    ############################
+        
+    def test_edit_account(self):
+        security.check(self, EDIT_ACCOUNT_PATH)
+        
+        #-------------------------------------------------
+        # Show the form when no params
+        #-------------------------------------------------
+        self.assertState(
+            'GET/POST',
+            EDIT_ACCOUNT_PATH,
+            [
+                causes.valid_domain,
+                causes.owner_logged_in,
+                causes.no_parameters,
+            ],
+            [
+                effects.status(200),
+                effects.rendered('account/account_form.html'),
+            ]
+        )
+        
+        #-------------------------------------------------
+        # Show the form when invalid params
+        #-------------------------------------------------
+        self.assertState(
+            'POST',
+            EDIT_ACCOUNT_PATH,
+            [
+                causes.valid_domain,
+                causes.owner_logged_in,
+                causes.params(
+                    domain = '---',
+                ),
+            ],
+            [
+                effects.status(200),
+                effects.rendered('account/account_form.html'),
+            ]
+        )
+        #-------------------------------------------------
+        # If everything's valid, changes are saved
+        #-------------------------------------------------
+        self.assertState(
+            'POST',
+            EDIT_ACCOUNT_PATH,
+            [
+                causes.valid_domain,
+                causes.owner_logged_in,
+                causes.params(
+                    subdomain = 'newname',
+                    root_domain = '1',
+                    name = 'newname',
+                    timezone = '1',
+                ),
+            ],
+            [
+                effects.field_value(
+                    Account, 
+                    {'pk': 1}, 
+                    name = 'newname',
+                    domain = 'newname.%s' % settings.ACCOUNT_DOMAINS[1],
+                    timezone = settings.ACCOUNT_TIME_ZONES[1],
+                ),
+                effects.status(200),
+                effects.rendered('account/account_form.html'),
+            ]
+        )
         
         
         

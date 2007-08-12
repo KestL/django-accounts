@@ -41,34 +41,36 @@ urlpatterns = patterns('',
             'template': 'reset_password_success.html'
         }
     ),
-    (
-        r'^change_password/(\d+)/$', 
-        _auth('change_password'),
-        {
-            'meta': {
-                'roles': 'account_admin',
-                'ssl': True,
-            },
-        }
-    ),
-    (
-        r'^change_password/$', 
-        _auth('change_own_password'),
-        {
-            'meta': {
-                'requires_login': True,
-                'ssl': True,
-            },
-        }
-    ),
+    #(
+        #r'^change_password/(\d+)/$', 
+        #_auth('change_password'),
+        #{
+            #'meta': {
+                #'roles': 'account_admin',
+                #'ssl': True,
+            #},
+        #}
+    #),
+    #(
+        #r'^change_password/$', 
+        #_auth('change_own_password'),
+        #{
+            #'meta': {
+                #'requires_login': True,
+                #'ssl': True,
+            #},
+        #}
+    #),
     
     (
-        r'^/$', 
+        r'^$', 
         _auth('edit_self'),
         {
             'meta': {
                 'requires_login': True,
             },
+            'post_save_redirect': '/person/',
+            'decorator': person_forms.decorate_person_form,
         }
     ),
     (
@@ -79,7 +81,7 @@ urlpatterns = patterns('',
                 'roles': 'account_admin',
             },
             'allow_empty': True,
-            'queryset': Person.objects.all()
+            'queryset': Person.objects.all(),
         }
     ),
     (
@@ -92,6 +94,7 @@ urlpatterns = patterns('',
             },
             'model': Person,
             'post_save_redirect': '/person/list/',
+            'decorator': person_forms.decorate_person_form,
         }
     ),
     (
@@ -103,6 +106,7 @@ urlpatterns = patterns('',
             },
             'model': Person,
             'post_save_redirect': '/person/list/',
+            'decorator': person_forms.decorate_person_form,
         }
     ),
     (

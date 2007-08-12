@@ -92,7 +92,6 @@ def context(key, value = Void, type = Void):
                     type
                 )
             )
-            
     return is_in_context
 
 def form_errors(name):
@@ -172,6 +171,14 @@ def count(n, ModelClass, **kwargs):
     return check_count
 
 
+
+def field_value(ModelClass, criteria, **kwargs):
+    def check_eq(client, response, testcase):
+        obj = ModelClass.objects.get(**criteria)
+        for key in kwargs:
+            assert getattr(obj, key) == kwargs[key]
+        
+    return check_eq
 
 
 

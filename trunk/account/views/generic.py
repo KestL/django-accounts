@@ -73,7 +73,9 @@ def edit(request, id, model, decorator = lambda x:x,
     record = get_or_404(request, model, id)
     
     FormClass = decorator(
-        forms.form_for_instance(record))
+        forms.form_for_instance(record), 
+        instance = record
+    )
     
     template_name = template_name or _make_template_name(model, 'form')
 

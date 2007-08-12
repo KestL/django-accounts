@@ -2,7 +2,7 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpRespons
 import django.newforms as forms
 from django.conf import settings
 from django.shortcuts import render_to_response
-from person_forms import SignupForm, PaymentForm, UpgradeForm
+from person_forms import SignupForm, PaymentForm, UpgradeForm, AccountForm
 from .. import helpers
 from ..models import Account, Person, RecurringPayment
 from account.lib.payment.errors import PaymentRequestError, PaymentResponseError
@@ -47,7 +47,17 @@ def _email_create_error_to_admin(account=None):
 
     
 def edit_account(request):
-    return HttpResponse('edit account')
+    if request.method == 'POST':
+        form = AccountForm(request.POST)
+        if form.is_valid():
+            form.update_account(request.account)
+    else:
+        form = AccountForm()
+    return helpers.render(
+        request,
+        'account/account_form.html',
+        {'form': form}
+    )
     
     
 def change_payment_method(request):
