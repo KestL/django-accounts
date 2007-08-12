@@ -1,16 +1,48 @@
 import causes, effects
 
 
-def check(self, path):
+def require_ssl(self, path):
+    #-------------------------------------------------
+    # If ssl is not on for GET, redirect to ssl page
+    #-------------------------------------------------
+    self.assertState(
+        'GET',
+        path,
+        [
+            causes.valid_domain,
+            causes.owner_logged_in,
+        ],
+        [
+            effects.redirected(path, status = 301, ssl = True)
+        ]
+    )
+    #-------------------------------------------------
+    # If ssl is not on for POST, 403 Forbidden
+    #-------------------------------------------------
+    self.assertState(
+        'POST',
+        path,
+        [
+            causes.valid_domain,
+            causes.owner_logged_in,
+        ],
+        [
+            effects.status(403)
+        ]
+    )
+    
+    
+    
+def check(self, path, *extra_causes):
     self.assertState(
         'GET/POST',
         path,
         [
             causes.person_not_logged_in,
             causes.valid_domain,
-        ],
+        ] + list(extra_causes),
         [
-            effects.redirected('/person/login/'),
+            effects.redirected('/person/login/', ssl=True),
         ]
     )
     self.assertState(
@@ -19,9 +51,9 @@ def check(self, path):
         [
             causes.owner_logged_in,
             causes.mismatched_domain,
-        ],
+        ] + list(extra_causes),
         [
-            effects.redirected('/person/login/'),
+            effects.redirected('/person/login/', ssl=True),
         ]
     )
     self.assertState(
@@ -30,7 +62,7 @@ def check(self, path):
         [
             causes.person_not_logged_in,
             causes.invalid_domain,
-        ],
+        ] + list(extra_causes),
         [
             effects.status(404),
         ]
@@ -41,7 +73,7 @@ def check(self, path):
         [
             causes.person_logged_in,
             causes.invalid_domain,
-        ],
+        ] + list(extra_causes),
         [
             effects.status(404),
         ]
@@ -52,7 +84,7 @@ def check(self, path):
         [
             causes.person_not_logged_in,
             causes.invalid_domain,
-        ],
+        ] + list(extra_causes),
         [
             effects.status(404),
         ]
@@ -63,7 +95,7 @@ def check(self, path):
         [
             causes.person_logged_in,
             causes.valid_domain,
-        ],
+        ] + list(extra_causes),
         [
             effects.status(403),
         ]

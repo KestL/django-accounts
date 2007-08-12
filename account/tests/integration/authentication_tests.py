@@ -25,10 +25,39 @@ class AuthenticationTests(IntegrationTest):
         Tests for person_views.login
         """
         
+        #-------------------------------------------------
+        # If ssl is not on for GET, redirect to ssl page
+        #-------------------------------------------------
+        self.assertState(
+            'GET',
+            LOGIN_PATH,
+            [
+                causes.valid_domain,
+            ],
+            [
+                effects.redirected(LOGIN_PATH, status = 301, ssl = True)
+            ]
+        )
+        #-------------------------------------------------
+        # If ssl is not on for POST, 403 Forbidden
+        #-------------------------------------------------
+        self.assertState(
+            'POST',
+            LOGIN_PATH,
+            [
+                causes.valid_domain,
+            ],
+            [
+                effects.status(403)
+            ]
+        )        
+        
+        
         self.assertState(
             'GET/POST',
             LOGIN_PATH,
             [
+                causes.ssl,
                 causes.person_not_logged_in,
                 causes.valid_domain,
                 causes.no_login_parameters,
@@ -44,6 +73,7 @@ class AuthenticationTests(IntegrationTest):
             'GET/POST',
             LOGIN_PATH,
             [
+                causes.ssl,
                 causes.person_not_logged_in,
                 causes.invalid_domain,
             ],
@@ -57,6 +87,7 @@ class AuthenticationTests(IntegrationTest):
             'GET/POST',
             LOGIN_PATH,
             [
+                causes.ssl,
                 causes.person_not_logged_in,
                 causes.no_domain,
             ],
@@ -70,6 +101,7 @@ class AuthenticationTests(IntegrationTest):
             'GET/POST',
             LOGIN_PATH,
             [
+                causes.ssl,
                 causes.person_logged_in,
                 causes.valid_domain,
             ],
@@ -83,6 +115,7 @@ class AuthenticationTests(IntegrationTest):
             'POST',
             LOGIN_PATH,
             [
+                causes.ssl,
                 causes.person_not_logged_in,
                 causes.valid_domain,
                 causes.valid_login_parameters,
@@ -100,6 +133,7 @@ class AuthenticationTests(IntegrationTest):
             'POST',
             LOGIN_PATH,
             [
+                causes.ssl,
                 causes.person_not_logged_in,
                 causes.valid_domain,
                 causes.valid_login_parameters,
@@ -117,6 +151,7 @@ class AuthenticationTests(IntegrationTest):
             'POST',
             LOGIN_PATH,
             [
+                causes.ssl,
                 causes.person_not_logged_in,
                 causes.valid_domain,
                 causes.invalid_login_parameters,
@@ -132,6 +167,7 @@ class AuthenticationTests(IntegrationTest):
             'GET/POST',
             LOGIN_PATH,
             [
+                causes.ssl,
                 causes.person_logged_in,
                 causes.mismatched_domain,
                 causes.no_login_parameters,
@@ -180,7 +216,7 @@ class AuthenticationTests(IntegrationTest):
             ],
             [
                 effects.not_logged_in,
-                effects.redirected(LOGIN_PATH),
+                effects.redirected(LOGIN_PATH, ssl=True),
             ]
         )
         self.assertState(
@@ -192,7 +228,7 @@ class AuthenticationTests(IntegrationTest):
             ],
             [
                 effects.not_logged_in,
-                effects.redirected(LOGIN_PATH),
+                effects.redirected(LOGIN_PATH, ssl=True),
             ]
         )
         self.assertState(
@@ -300,11 +336,12 @@ class AuthenticationTests(IntegrationTest):
         """
         Tests for authentication.change_password
         """
-        security.check(self, CHANGE_PASSWORD_PATH)
+        security.check(self, CHANGE_PASSWORD_PATH, causes.ssl)
         self.assertState(
             'GET',
             CHANGE_PASSWORD_PATH,
             [
+                causes.ssl,
                 causes.owner_logged_in,
                 causes.valid_domain,
             ],
@@ -318,6 +355,7 @@ class AuthenticationTests(IntegrationTest):
             'GET/POST',
             CHANGE_PASSWORD_PATH_INVALID,
             [
+                causes.ssl,
                 causes.owner_logged_in,
                 causes.valid_domain,
             ],
@@ -329,6 +367,7 @@ class AuthenticationTests(IntegrationTest):
             'GET/POST',
             CHANGE_PASSWORD_PATH_MISMATCH,
             [
+                causes.ssl,
                 causes.owner_logged_in,
                 causes.valid_domain,
             ],
@@ -341,6 +380,7 @@ class AuthenticationTests(IntegrationTest):
             'POST',
             CHANGE_PASSWORD_PATH,
             [
+                causes.ssl,
                 causes.owner_logged_in,
                 causes.valid_domain,
                 causes.params(
@@ -365,6 +405,7 @@ class AuthenticationTests(IntegrationTest):
             'POST',
             CHANGE_PASSWORD_PATH,
             [
+                causes.ssl,
                 causes.alters(Person),
                 causes.owner_logged_in,
                 causes.valid_domain,
@@ -383,6 +424,7 @@ class AuthenticationTests(IntegrationTest):
             'GET/POST',
             '/person/change_password/3/',
             [
+                causes.ssl,
                 causes.alters(Person),
                 causes.owner_logged_in,
                 causes.valid_domain,

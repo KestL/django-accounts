@@ -52,11 +52,18 @@ def rendered(template):
         testcase.assertTemplateUsed(response, template)
     return was_rendered
 
-def redirected(path):
-    """ Check that user was redirected to path """
+def redirected(path, status=302, ssl=False):
+    """ 
+    Check that user was redirected to path 
+    `status`: the status code expected.
+    'ssl': set to true if you expect to redirect to https from http
+    """
     def was_redirected(client, response, testcase):
-        testcase.assertRedirects(response, path)
+        if ssl:
+            client.defaults['HTTPS'] = 'on'
+        testcase.assertRedirects(response, path, status_code=status)
     return was_redirected
+
 
 def redirected_to_url(url):
     """ Checks for redirection to a whole url, not just a path """

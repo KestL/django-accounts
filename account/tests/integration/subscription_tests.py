@@ -201,9 +201,35 @@ class SubscriptionTests(IntegrationTest):
     ############################
     
     def test_signup(self):
-        """
-        Tests for person_views.login
-        """
+                #-------------------------------------------------
+        # If ssl is not on for GET, redirect to ssl page
+        #-------------------------------------------------
+        self.assertState(
+            'GET',
+            CREATE_PATH % 1,
+            [
+                causes.no_domain,
+                causes.no_parameters,
+            ],
+            [
+                effects.redirected(CREATE_PATH % 1, status = 301, ssl = True)
+            ]
+        )
+        #-------------------------------------------------
+        # If ssl is not on for POST, 403 Forbidden
+        #-------------------------------------------------
+        self.assertState(
+            'POST',
+            CREATE_PATH % 1,
+            [
+                causes.no_domain,
+                causes.no_parameters,
+            ],
+            [
+                effects.status(403)
+            ]
+        )        
+        
         #-------------------------------------------------
         # You can't sign up from a domain belonging
         # to an account.
@@ -212,6 +238,7 @@ class SubscriptionTests(IntegrationTest):
             'GET/POST',
             CREATE_PATH % 0,
             [
+                causes.ssl,
                 causes.person_not_logged_in,
                 causes.valid_domain,
             ],
@@ -227,6 +254,7 @@ class SubscriptionTests(IntegrationTest):
             'GET/POST',
             CREATE_PATH % 0,
             [
+                causes.ssl,
                 causes.no_domain,
                 causes.no_parameters,
             ],
@@ -243,6 +271,7 @@ class SubscriptionTests(IntegrationTest):
             'GET/POST',
             CREATE_PATH % 789, # 789 is invalid subscription level
             [
+                causes.ssl,
                 causes.no_domain,
                 causes.no_parameters,
             ],
@@ -260,6 +289,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CREATE_PATH % 0, # 0 is Free Account
             [
+                causes.ssl,
                 delete_test_account,
                 causes.no_domain,
                 causes.params(**signup_params_no_cc),
@@ -281,6 +311,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CREATE_PATH % 1, # 1 is Silver (pay) account
             [
+                causes.ssl,
                 delete_test_account,
                 causes.no_domain,
                 causes.params(**signup_params_no_cc),
@@ -299,6 +330,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CREATE_PATH % 1, # 1 is Silver (pay) account
             [
+                causes.ssl,
                 delete_test_account,
                 causes.no_domain,
                 causes.params(**signup_params_no_cc),
@@ -322,6 +354,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CREATE_PATH % 1, # 1 is Silver (pay) account
             [
+                causes.ssl,
                 delete_test_account,
                 causes.no_domain,
                 causes.params(**signup_params_no_cc),
@@ -342,6 +375,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CREATE_PATH % 1, # 1 is Silver (pay) account
             [
+                causes.ssl,
                 delete_test_account,
                 causes.no_domain,
                 causes.params(**signup_params_no_cc),
@@ -361,8 +395,9 @@ class SubscriptionTests(IntegrationTest):
     ############################
         
     def test_change_payment_method(self):
-        security.check(self, CHANGE_PM_PATH)
-        
+        security.check(self, CHANGE_PM_PATH, causes.ssl)
+        security.require_ssl(self, CHANGE_PM_PATH)
+            
         #-------------------------------------------------
         # The form is shown
         #-------------------------------------------------
@@ -370,6 +405,7 @@ class SubscriptionTests(IntegrationTest):
             'GET/POST',
             CHANGE_PM_PATH,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 causes.no_parameters,
@@ -388,6 +424,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CHANGE_PM_PATH,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 causes.no_parameters,
@@ -411,6 +448,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CHANGE_PM_PATH,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 causes.no_parameters,
@@ -442,6 +480,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CHANGE_PM_PATH,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 causes.no_parameters,
@@ -468,6 +507,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CHANGE_PM_PATH,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 causes.no_parameters,
@@ -502,6 +542,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CHANGE_PM_PATH,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 causes.no_parameters,
@@ -534,6 +575,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CHANGE_PM_PATH,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 causes.no_parameters,
@@ -566,6 +608,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             CHANGE_PM_PATH,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 causes.no_parameters,
@@ -683,7 +726,10 @@ class SubscriptionTests(IntegrationTest):
     ############################
     
     def test_upgrade(self):
-        
+
+        security.check(self, UPGRADE_PATH % 2, causes.ssl)
+        security.require_ssl(self, UPGRADE_PATH % 2)
+            
         #-------------------------------------------------
         # Show Form
         #-------------------------------------------------
@@ -691,6 +737,7 @@ class SubscriptionTests(IntegrationTest):
             'GET',
             UPGRADE_PATH % 2,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 account_has_payment_method,
@@ -707,6 +754,7 @@ class SubscriptionTests(IntegrationTest):
             'GET/POST',
             UPGRADE_PATH % 666,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 account_has_payment_method,
@@ -722,6 +770,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             UPGRADE_PATH % 1,
             [
+                causes.ssl,
                 causes.valid_domain,
                 causes.owner_logged_in,
                 account_has_payment_method,
@@ -738,6 +787,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             UPGRADE_PATH % 2,
             [
+                causes.ssl,
                 account_has_subscription_level(1),
                 causes.valid_domain,
                 causes.owner_logged_in,
@@ -757,6 +807,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             UPGRADE_PATH % 2,
             [
+                causes.ssl,
                 account_has_subscription_level(1),
                 causes.valid_domain,
                 causes.owner_logged_in,
@@ -776,6 +827,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             UPGRADE_PATH % 2,
             [
+                causes.ssl,
                 account_has_subscription_level(1),
                 causes.valid_domain,
                 causes.owner_logged_in,
@@ -798,6 +850,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             UPGRADE_PATH % 2, 
             [
+                causes.ssl,
                 account_has_subscription_level(1),
                 causes.valid_domain,
                 causes.owner_logged_in,
@@ -820,6 +873,7 @@ class SubscriptionTests(IntegrationTest):
             'POST',
             UPGRADE_PATH % 2,
             [
+                causes.ssl,
                 account_has_subscription_level(1),
                 causes.valid_domain,
                 causes.owner_logged_in,

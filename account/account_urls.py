@@ -21,6 +21,7 @@ urlpatterns = patterns('',
             'meta': {
                 'requires_login': True,
                 'roles': 'account_admin',
+                'ssl': True,
             },
         }
     ),
@@ -30,6 +31,7 @@ urlpatterns = patterns('',
         {
             'meta': {
                 'requires_account': False,
+                'ssl': True,
             },
         }
     ),
@@ -40,6 +42,7 @@ urlpatterns = patterns('',
             'meta': {
                 'requires_login': True,
                 'roles': 'account_admin',
+                'ssl': True,
             },
         }
     ),

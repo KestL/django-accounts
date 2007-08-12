@@ -12,6 +12,7 @@ urlpatterns = patterns('',
         {
             'meta': {
                 'requires_logout': True,
+                'ssl': True,
             },
         }
     ),
@@ -46,6 +47,7 @@ urlpatterns = patterns('',
         {
             'meta': {
                 'roles': 'account_admin',
+                'ssl': True,
             },
         }
     ),
@@ -55,6 +57,7 @@ urlpatterns = patterns('',
         {
             'meta': {
                 'requires_login': True,
+                'ssl': True,
             },
         }
     ),
@@ -85,6 +88,7 @@ urlpatterns = patterns('',
         {
             'meta': {
                 'roles': 'account_admin',
+                'ssl': True,
             },
             'model': Person,
             'post_save_redirect': '/person/list/',
