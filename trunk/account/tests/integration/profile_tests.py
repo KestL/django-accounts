@@ -56,11 +56,13 @@ class ProfileTests(IntegrationTest):
         """
         Tests for profile.create
         """
-        security.check(self, CREATE_PATH)
+        security.check(self, CREATE_PATH, causes.ssl)
+        
         self.assertState(
             'GET',
             CREATE_PATH,
             [
+                causes.ssl,
                 causes.owner_logged_in,
                 causes.valid_domain,
             ],
@@ -74,6 +76,7 @@ class ProfileTests(IntegrationTest):
             'POST',
             CREATE_PATH,
             [
+                causes.ssl,
                 causes.owner_logged_in,
                 causes.valid_domain,
                 causes.invalid_create_person_parameters,
@@ -89,6 +92,7 @@ class ProfileTests(IntegrationTest):
             'POST',
             CREATE_PATH,
             [
+                causes.ssl,
                 causes.alters(Person),
                 causes.owner_logged_in,
                 causes.valid_domain,

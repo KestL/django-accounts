@@ -1,4 +1,4 @@
-from django.http import HttpResponse, Http404, HttpResponseForbidden
+from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponsePermanentRedirect, get_host
 from models import Account, Person
 from django.core.exceptions import ObjectDoesNotExist
 import views.authentication
@@ -67,6 +67,12 @@ class AccountBasedAuthentication(object):
         
         meta = view_kwargs.pop('meta')
         
+        if meta.get('ssl') and not request.is_secure():
+            if request.method == 'GET':
+                return self._redirect(request, True)
+            else:
+                return HttpResponseForbidden()
+        
         account = getattr(request, 'account', None)
         
         if meta.get('requires_account', True):
@@ -104,7 +110,18 @@ class AccountBasedAuthentication(object):
         else:
             return HttpResponseForbidden()
             
-        
+
+    def _redirect(self, request, secure):
+        protocol = secure and "https" or "http"
+        newurl = "%s://%s%s" % (protocol,get_host(request),request.get_full_path())
+        if settings.DEBUG and request.method == 'POST':
+            raise RuntimeError, \
+        """Django can't perform a SSL redirect while maintaining POST data.
+           Please structure your views so that redirects only occur during GETs."""
+
+        return HttpResponsePermanentRedirect(newurl)       
+    
+    
         
 class DualSessionMiddleware(object):
     """Session middleware that allows you to turn individual browser-length 

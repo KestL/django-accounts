@@ -11,6 +11,11 @@ def breakpoint(client, parameters):
     import pdb; pdb.set_trace()
     return client, parameters
                
+def ssl(client, parameters):
+    client.defaults['HTTPS'] = 'on'
+    return client, parameters
+
+               
                
 def person_logged_in(client, parameters):
     """ Logs in the default person. """
@@ -21,6 +26,7 @@ def person_logged_in(client, parameters):
             'password': 'password',
         },
         HTTP_HOST = 'starr.localhost.com',
+        HTTPS = 'on',
     )
     return client, parameters
 
@@ -33,6 +39,7 @@ def owner_logged_in(client, parameters):
             'password': 'password',
         },
         HTTP_HOST = 'starr.localhost.com',
+        HTTPS = 'on',
     )
     return client, parameters
 
