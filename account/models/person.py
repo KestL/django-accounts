@@ -47,10 +47,18 @@ class Person(models.Model):
     email = models.EmailField(
         unique = True,
     )
+    
+    new_password = models.CharField(
+        'new password', 
+        maxlength = 30,
+        blank = True,
+        null = True,
+    )
 
     password = models.CharField(
         'password', 
         maxlength = 128,
+        editable = False,
     )
     
     role_set = models.ManyToManyField(
@@ -60,6 +68,13 @@ class Person(models.Model):
     ) 
     
  
+    def save(self, *args, **kwargs):
+        # If the password has been changed, handle it.
+        if self.new_password:
+            self.set_password(self.new_password)
+            self.new_password = None
+            
+        return super(Person, self).save(*args, **kwargs)
     
     def __unicode__(self):
         return self.username

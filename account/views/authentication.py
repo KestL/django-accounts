@@ -1,7 +1,7 @@
 from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template import loader, Context
 from django.contrib.auth import authenticate, logout
-from person_forms import LoginForm, ResetPasswordForm, ChangePasswordForm
+from person_forms import LoginForm, ResetPasswordForm
 import generic
 from ..models import Person
 from .. import helpers
@@ -92,37 +92,12 @@ def reset_password(request):
     )
     
 
-def change_own_password(request):
-    return HttpResponse('hi')
-
-
-def change_password(request, id):
-        
-    person = generic.get_or_404(request, Person, id)
-    
-    if request.method == 'POST':
-        form = ChangePasswordForm(request.POST)
-        if form.is_valid():
-            person.set_password(
-                form.cleaned_data['password'])
-            person.save()
-            return HttpResponseRedirect(
-                '/person/edit/%s/' % id 
-            )
-    else:
-        form = ChangePasswordForm()
-        
-    return helpers.render(
-        request,
-        'account/change_password_form.html',
-        {'form': form}
-    )
-    
-
-def edit_self(request):
+def edit_self(request, **kwargs):
     return generic.edit(
         request, 
-        id = self.person.id, 
+        id = request.person.id, 
+        model = Person,
+        **kwargs
     )
     
 

@@ -79,26 +79,8 @@ class ResetPasswordForm(forms.Form):
             return self.person
 
         
-class ChangePasswordForm(forms.Form):    
-    password = forms.CharField(
-        min_length = 6,
-        max_length = 20,
-        widget = forms.PasswordInput()
-    )
-    password2 = forms.CharField(
-        min_length = 6,
-        max_length = 20,
-        widget = forms.PasswordInput()
-    )
     
-    def clean(self):
-        if self.data['password'] != self.data['password2']:
-            raise forms.ValidationError(
-                "The two passwords didn't match. Please try again."
-            )
-        return self.cleaned_data
-    
-    
+   
 class SavesPayment(object):
     def _get_requires_payment(self):
         return  getattr(self, '_requires_payment', True)
@@ -230,6 +212,13 @@ class SignupForm(forms.Form, SavesPayment):
         label = "I agree to the Terms of Service, Refund, and Privacy policies"
     )
         
+    def clean_timezone(self):
+        try:
+            return settings.ACCOUNT_TIME_ZONES[int(self.cleaned_data['timezone'])]
+        except ValueError:
+            raise form.ValidationError(
+                "Invalid Time Zone"
+            )
         
     def clean_password2(self):
         if self.cleaned_data['password'] != self.cleaned_data['password2']:
@@ -346,9 +335,92 @@ class UpgradeForm(forms.Form, SavesPayment):
 
 
 
+class AccountForm(forms.Form):
+    name = forms.CharField(
+        label = "Company / Organization",
+        min_length = 2,
+        max_length = 30,        
+    )
+    timezone = forms.ChoiceField(
+        label = "Time zone",
+        choices = enumerate(settings.ACCOUNT_TIME_ZONES)
+    )
+    subdomain = forms.CharField(
+        min_length = 2,
+        max_length = 30,        
+    )
+    root_domain = forms.ChoiceField(
+        choices = enumerate(settings.ACCOUNT_DOMAINS)
+    )
+            
+    def clean_subdomain(self):
+        if not self.cleaned_data['subdomain'].isalnum():
+            raise forms.ValidationError(
+                "Your subdomain can only include letters and numbers."
+            )
+        return self.cleaned_data['subdomain']
+    
+    def clean_timezone(self):
+        try:
+            return settings.ACCOUNT_TIME_ZONES[int(self.cleaned_data['timezone'])]
+        except ValueError:
+            raise form.ValidationError(
+                "Invalid Time Zone"
+            )
+    
+    def clean(self):
+        if self.errors:
+            return
+        self.cleaned_data['domain'] = '%s.%s' % (
+            self.cleaned_data['subdomain'],
+            settings.ACCOUNT_DOMAINS[
+                int(self.cleaned_data['root_domain'])
+            ]
+        )
+        return self.cleaned_data
+    
+        
+    def update_account(self, account):
+        for n in ['name', 'domain', 'timezone']:
+            setattr(account, n, self.cleaned_data[n])
+        if not account.validate():
+            account.save()
+            return account
+        else:
+            raise ValueError
+        
+    
 
 
 
+##############################################
+# Decorators for generic views
+##############################################
 
-
+def decorate_person_form(form, instance=None):
+    """
+    Adds a confirmed password field to form.
+    """
+    form.base_fields['new_password'].widget = forms.PasswordInput()
+    form.base_fields['new_password'].initial = ''
+    form.base_fields['new_password'].min_length = 6
+    form.base_fields['new_password'].max_length = 20
+    form.base_fields['new_password_confirm'] = forms.CharField(
+        min_length = 6,
+        max_length = 20,
+        widget = forms.PasswordInput()
+    )
+    
+    form.base_fields['new_password'].required = not instance
+    form.base_fields['new_password_confirm'].required = not instance
+        
+    def clean_new_password_confirm(self):
+        if self._errors: 
+            return None
+        if self.cleaned_data['new_password_confirm'] != self.cleaned_data['new_password']:
+            raise forms.ValidationError("Passwords must match")
+        return self.cleaned_data['new_password_confirm']
+    
+    form.clean_new_password_confirm = clean_new_password_confirm
+    return form
 

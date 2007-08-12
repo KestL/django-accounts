@@ -332,106 +332,106 @@ class AuthenticationTests(IntegrationTest):
         
 
     
-    def test_change_password(self):
-        """
-        Tests for authentication.change_password
-        """
-        security.check(self, CHANGE_PASSWORD_PATH, causes.ssl)
-        self.assertState(
-            'GET',
-            CHANGE_PASSWORD_PATH,
-            [
-                causes.ssl,
-                causes.owner_logged_in,
-                causes.valid_domain,
-            ],
-            [
-                effects.rendered('account/change_password_form.html'),
-                effects.context('form', type = forms.BaseForm),
-                effects.status(200),
-            ]
-        )
-        self.assertState(
-            'GET/POST',
-            CHANGE_PASSWORD_PATH_INVALID,
-            [
-                causes.ssl,
-                causes.owner_logged_in,
-                causes.valid_domain,
-            ],
-            [
-                effects.status(404),
-            ]
-        )
-        self.assertState(
-            'GET/POST',
-            CHANGE_PASSWORD_PATH_MISMATCH,
-            [
-                causes.ssl,
-                causes.owner_logged_in,
-                causes.valid_domain,
-            ],
-            [
-                effects.status(404),
-            ]
-        )
+    #def test_change_password(self):
+        #"""
+        #Tests for authentication.change_password
+        #"""
+        #security.check(self, CHANGE_PASSWORD_PATH, causes.ssl)
+        #self.assertState(
+            #'GET',
+            #CHANGE_PASSWORD_PATH,
+            #[
+                #causes.ssl,
+                #causes.owner_logged_in,
+                #causes.valid_domain,
+            #],
+            #[
+                #effects.rendered('account/change_password_form.html'),
+                #effects.context('form', type = forms.BaseForm),
+                #effects.status(200),
+            #]
+        #)
+        #self.assertState(
+            #'GET/POST',
+            #CHANGE_PASSWORD_PATH_INVALID,
+            #[
+                #causes.ssl,
+                #causes.owner_logged_in,
+                #causes.valid_domain,
+            #],
+            #[
+                #effects.status(404),
+            #]
+        #)
+        #self.assertState(
+            #'GET/POST',
+            #CHANGE_PASSWORD_PATH_MISMATCH,
+            #[
+                #causes.ssl,
+                #causes.owner_logged_in,
+                #causes.valid_domain,
+            #],
+            #[
+                #effects.status(404),
+            #]
+        #)
             
-        self.assertState(
-            'POST',
-            CHANGE_PASSWORD_PATH,
-            [
-                causes.ssl,
-                causes.owner_logged_in,
-                causes.valid_domain,
-                causes.params(
-                    password = 'newpassword',
-                    password2 = 'mismatch',
-                )
-            ],
-            [
-                effects.rendered('account/change_password_form.html'),
-                effects.context('form', type = forms.BaseForm),
-                effects.form_errors('form'),
-                effects.status(200),
-            ]
-        )
+        #self.assertState(
+            #'POST',
+            #CHANGE_PASSWORD_PATH,
+            #[
+                #causes.ssl,
+                #causes.owner_logged_in,
+                #causes.valid_domain,
+                #causes.params(
+                    #password = 'newpassword',
+                    #password2 = 'mismatch',
+                #)
+            #],
+            #[
+                #effects.rendered('account/change_password_form.html'),
+                #effects.context('form', type = forms.BaseForm),
+                #effects.form_errors('form'),
+                #effects.status(200),
+            #]
+        #)
         
             
-        def password_was_changed(client, response, testcase):
-            person = Person.objects.get(pk = 1)
-            assert person.check_password == 'bob'
+        #def password_was_changed(client, response, testcase):
+            #person = Person.objects.get(pk = 1)
+            #assert person.check_password == 'bob'
     
-        self.assertState(
-            'POST',
-            CHANGE_PASSWORD_PATH,
-            [
-                causes.ssl,
-                causes.alters(Person),
-                causes.owner_logged_in,
-                causes.valid_domain,
-                causes.params(
-                    password = 'newpassword',
-                    password2 = 'newpassword',
-                )
-            ],
-            [
-                effects.person_has_password(1, 'newpassword'),
-                effects.redirected('/person/edit/1/'),
-            ]
-        )
+        #self.assertState(
+            #'POST',
+            #CHANGE_PASSWORD_PATH,
+            #[
+                #causes.ssl,
+                #causes.alters(Person),
+                #causes.owner_logged_in,
+                #causes.valid_domain,
+                #causes.params(
+                    #password = 'newpassword',
+                    #password2 = 'newpassword',
+                #)
+            #],
+            #[
+                #effects.person_has_password(1, 'newpassword'),
+                #effects.redirected('/person/edit/1/'),
+            #]
+        #)
             
-        self.assertState(
-            'GET/POST',
-            '/person/change_password/3/',
-            [
-                causes.ssl,
-                causes.alters(Person),
-                causes.owner_logged_in,
-                causes.valid_domain,
-            ],
-            [
-                effects.status(404),
-            ]
-        )
+        #self.assertState(
+            #'GET/POST',
+            #'/person/change_password/3/',
+            #[
+                #causes.ssl,
+                #causes.alters(Person),
+                #causes.owner_logged_in,
+                #causes.valid_domain,
+            #],
+            #[
+                #effects.status(404),
+            #]
+        #)
             
         
