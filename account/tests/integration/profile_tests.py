@@ -242,7 +242,7 @@ class ProfileTests(IntegrationTest):
             ],
             [
                 effects.field_value(Person, {'pk':1}, first_name = 'bob'),
-                #effects.person_has_password(1, 'password'),
+                effects.person_has_password(1, 'password'),
                 effects.redirected('/person/list/'),
             ]
         )
