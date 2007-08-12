@@ -1,1 +1,5 @@
-{{ form }}
+{% extends "account/base_form.html" %}
+{% block title %} Edit Person {% endblock %}
+{% block form_as_li %} 
+    {{ form.as_li }} 
+{% endblock %}

@@ -1,3 +1,5 @@
-<h1>Signup</h1>
-
-{{ form.as_p }}
+{% extends "account/base_form.html" %}
+{% block title %} Signup {% endblock %}
+{% block form_as_li %} 
+    {{ form.as_li }} 
+{% endblock %}

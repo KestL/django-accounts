@@ -1,2 +1,5 @@
-<h1> Change Payment Method </h1>
-{{ form }}}
+{% extends "account/base_form.html" %}
+{% block title %} Change Payment Method {% endblock %}
+{% block form_as_li %} 
+    {{ form.as_li }} 
+{% endblock %}

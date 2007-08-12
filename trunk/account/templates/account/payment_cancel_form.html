@@ -1,1 +1,12 @@
-put form here
+{% extends "account/base.html" %}
+{% block title %} Cancel Payment {% endblock %}
+{% block content %} 
+    <p>
+        Your payment method will be canceled, and your 
+        account will expire at the end of this billing
+        period. Are you sure?
+    </p>
+    <form> 
+        <input type="submit" />
+    </form>
+{% endblock %}

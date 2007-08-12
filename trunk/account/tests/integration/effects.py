@@ -79,25 +79,38 @@ def redirected_to_url(url):
 def context(key, value = Void, type = Void):
     """ Check that a key exists in context w/ matching value """
     def is_in_context(client, response, testcase):
-        assert key in response.context
-        if value is not Void:
-            testcase.assertEqual(
-                value, 
-                response.context[key]
-            )
-        if type is not Void:
-            testcase.assertTrue(
-                isinstance(
-                    response.context[key], 
-                    type
+        # If multiple templates are called, context
+        # is actually a list of contexts, so we check
+        # the value in all of them.
+        if isinstance(response.context, list):
+            contexts = response.context
+        else:
+            contexts = [response.context]
+            
+        for context in contexts:
+            assert key in context
+            if value is not Void:
+                testcase.assertEqual(
+                    value, 
+                    context[key]
                 )
-            )
+            if type is not Void:
+                testcase.assertTrue(
+                    isinstance(
+                        context[key], 
+                        type
+                    )
+                )
     return is_in_context
 
 def form_errors(name):
     def has_errors(client, response, testcase):
-        assert name in response.context
-        assert response.context[name]._errors
+        if isinstance(response.context, list):
+            contexts = response.context
+        else:
+            contexts = [response.context]
+        for context in contexts:
+            assert context[name]._errors
             
     return has_errors
 
