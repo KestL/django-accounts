@@ -82,6 +82,7 @@ urlpatterns = patterns('',
             },
             'allow_empty': True,
             'queryset': Person.objects.all(),
+            'template_name': 'account/person_list.html',
         }
     ),
     (

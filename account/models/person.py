@@ -172,6 +172,12 @@ class Person(models.Model):
         r=[role.name for role in self.role_set.all()]
         return p.has_roles(r)        
         
+    def add_role(self, *names):
+        """
+        Adds each of the roles specified in names to the person.
+        """
+        for name in names:
+            self.role_set.add(Role.objects.get(name=name))
         
                 
         

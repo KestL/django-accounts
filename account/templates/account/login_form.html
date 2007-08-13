@@ -1,42 +1,6 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 TRANSITIONAL//EN"
-       "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-
-<head>
-  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
-  <title>{{ account.name }} Login</title>
-</head>
-
-<body class="login">
-	<div class="Container">
-	  
-	  <div id="Dialog">
-	  
-		<h1>{{ account.name }} Login</h1>
-	  
-		<form method="post">
-		  <dl>
-			<div class="user_name_and_password_login">
-				  <dt>{{ form.username.label }}:</dt>
-				  <dd>{{ form.username }} </dd>
-	  
-				  <dt>{{ form.password.label }}:</dt>
-				  <dd></dd>
-				  
-				  <dd>
-					{{ form.password }}
-					<span>(<a href="">I forgot my password/username</a>)</span>
-				  </dd>
-			  </div>
-	  
-			<dd> {{ form.remember_me }} {{ form.remember_me.label }} </dd>
-			<dd> <input type="submit" value="Sign in" /> </dd>
-		  </dl>
-		</form>
-	  </div>
-
-  </div>
-</body>
-
-</html>
+{% extends "account/base_form.html" %}
+{% block title %} {{ account.name }} Login {% endblock %}
+{% block submit_label %} Login {% endblock %}
+{% block additional_li %} 
+  <li>(<a href="">I forgot my password/username</a>)</li>
+{% endblock %}

@@ -1,1 +1,9 @@
-person list
+{% extends "account/base.html" %}
+{% block title %} Your People {% endblock %}
+{% block content %} 
+    <ul>
+    {% for person in person_list %}
+        <li> {{ person.username }} </li>
+    {% endfor %}
+    </ul>
+{% endblock %}
