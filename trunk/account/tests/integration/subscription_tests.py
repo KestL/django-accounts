@@ -301,6 +301,7 @@ class SubscriptionTests(IntegrationTest):
                 ),
                 effects.exists(Account, domain = domain),
                 effects.exists(Person, email = 'billybob@lala.net'),
+                effects.person_has_role('account_admin', username = 'billybob'),
             ]
         )
         
@@ -343,9 +344,11 @@ class SubscriptionTests(IntegrationTest):
                 ),
                 effects.exists(Account, domain = domain),
                 effects.exists(Person, email = 'billybob@lala.net'),
+                effects.person_has_role('account_admin', username = 'billybob'),
                 effects.exists(RecurringPayment, name = 'billy bob'),
             ]
         )
+        
         
         #-------------------------------------------------
         # If the gateway returns an unrecognized response,

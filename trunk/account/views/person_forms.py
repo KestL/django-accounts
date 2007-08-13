@@ -143,6 +143,10 @@ class SignupForm(forms.Form, SavesPayment):
     def __init__(self, requires_payment, *args, **kwargs):
         self.requires_payment = requires_payment
         forms.Form.__init__(self, *args, **kwargs)
+        if not requires_payment:
+            del self.fields['card_number']
+            del self.fields['card_expiration']
+            
         
     first_name = forms.CharField(
         label = "First name",
@@ -232,8 +236,24 @@ class SignupForm(forms.Form, SavesPayment):
             raise forms.ValidationError(
                 "Your subdomain can only include letters and numbers."
             )
+        
+        self.cleaned_data['domain'] = '%s.%s' % (
+            self.cleaned_data['subdomain'],
+            settings.ACCOUNT_DOMAINS[
+                int(self.data['root_domain'])
+            ]
+        )
+        try:
+            Account.objects.get(domain = self.cleaned_data['domain'])
+            raise forms.ValidationError(
+                "The domain %s has already been taken" % self.cleaned_data['domain']
+            )
+        except Account.DoesNotExist:
+            pass
+        
         return self.cleaned_data['subdomain']
     
+        
     
     def clean_terms_of_service(self):
         if not self.cleaned_data['terms_of_service']:
@@ -242,17 +262,6 @@ class SignupForm(forms.Form, SavesPayment):
             )
         
     
-    def clean(self):
-        if self.errors:
-            return
-        self.cleaned_data['domain'] = '%s.%s' % (
-            self.cleaned_data['subdomain'],
-            settings.ACCOUNT_DOMAINS[
-                int(self.cleaned_data['root_domain'])
-            ]
-        )
-        return self.cleaned_data
-        
             
         
         

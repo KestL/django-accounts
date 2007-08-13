@@ -141,6 +141,10 @@ def person_has_password(pk, password):
         assert Person.objects.get(pk = pk).check_password(password)
     return check_password
         
+def person_has_role(role, **criteria):
+    def check_role(client, response, testcase):
+        assert Person.objects.get(**criteria).has_roles(role)
+    return check_role
 
 def session_expires_on_close(client, response, testcase):
     testcase.assertEqual(
@@ -192,6 +196,13 @@ def field_value(ModelClass, criteria, **kwargs):
             assert getattr(obj, key) == kwargs[key]
         
     return check_eq
+
+def apply(ModelClass, criteria, method, params, expected=True):
+    def check_fn(client, response, testcase):
+        obj = ModelClass.objects.get(**criteria)
+        assert getattr(obj, method, **params) == expected
+        
+    return check_fn
 
 
 

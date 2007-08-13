@@ -48,7 +48,7 @@ class ProfileTests(IntegrationTest):
             # client.previous_request is only available
             # in patched test client.
             if hasattr(client, 'previous_request'):
-                people = response.context['object_list']           
+                people = response.context[0]['object_list']           
                 expected = Person.objects.filter(account = client.previous_request.account)
                 assert len(people) == len(expected)
                 for p in people:

@@ -232,6 +232,8 @@ def create(request, level):
                 person = form.save_person(account)
                 payment = form.save_payment(account, subscription_level)
                 
+                person.add_role('account_admin')
+            
                 return HttpResponseRedirect(
                     'http://%s/' % form.cleaned_data['domain']
                 )
