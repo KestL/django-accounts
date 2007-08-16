@@ -398,6 +398,7 @@ class ProfileTests(IntegrationTest):
         )
         #-------------------------------------------------
         # Submitting valid data changes the record. 
+        # But if you're not an admin, you can't edit your roles.
         #-------------------------------------------------
         self.assertState(
             'POST',
@@ -409,14 +410,45 @@ class ProfileTests(IntegrationTest):
                     first_name = 'mary',
                     last_name = 'sue',
                     email = 'mary@email.com',
+                    role_set = ['1', '13'],
                 ),
 
             ],
             [
                 effects.person_has_password(1, 'password'),
+                effects.person_does_not_have_role('account_admin', pk=1),
+                effects.person_does_not_have_role('consultant', pk=1),
                 effects.rendered('account/person_form.html'),
                 effects.context('form', type = forms.BaseForm),
                 effects.status(200),
+            ]
+        )
+        #-------------------------------------------------
+        # Submitting valid data changes the record. 
+        # If your're an admin, you CAN edit your roles
+        # with the exception that you CAN NOT remove your
+        # own admin priveledges.
+        #-------------------------------------------------
+        self.assertState(
+            'POST',
+            EDIT_SELF_PATH,
+            [
+                causes.owner_logged_in,
+                causes.valid_domain,
+                causes.params(
+                    username = "kmnicholson",
+                    first_name = 'mary',
+                    last_name = 'sue',
+                    email = 'mary@email.com',
+                    role_set = ['14'],
+                ),
+
+            ],
+            [
+                effects.person_has_password(2, 'password'),
+                effects.person_has_role('janitor', pk=2),
+                effects.person_has_role('account_admin', pk=2),
+                effects.redirected('/person/'),
             ]
         )
         #-------------------------------------------------
@@ -429,10 +461,10 @@ class ProfileTests(IntegrationTest):
                 causes.person_logged_in,
                 causes.valid_domain,
                 causes.params(
-                    username = 'marysue',
-                    first_name = 'mary',
-                    last_name = 'sue',
-                    email = 'mary@email.com',
+                    username = 'snhorne',
+                    first_name = 'starr',
+                    last_name = 'horne',
+                    email = 'starr@email.com',
                     new_password = 'newone',
                     new_password_confirm = 'newone',
                 ),
@@ -487,7 +519,6 @@ class ProfileTests(IntegrationTest):
                 effects.status(404),
             ]
         )
-        
         
         self.assertState(
             'POST',
