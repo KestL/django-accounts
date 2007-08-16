@@ -14,6 +14,7 @@ class SimpleRoleParser:
         """ e.g. s='(admin|super_admin)&guest'
         """
         self.__spec_chars=['|','&','(',')']
+        s = s.replace(' ', '')
         self.role_query=s
         self.parsed_roles=self.__strip_roles(s)
     

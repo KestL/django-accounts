@@ -1,9 +1,20 @@
 {% extends "account/base.html" %}
 {% block title %} Your People {% endblock %}
 {% block content %} 
-    <ul>
-    {% for person in person_list %}
-        <li> {{ person.username }} </li>
+    <table>
+    {% for person in object_list %}
+        <tr>
+            <td> {{ person.username }} </td>
+            <td> {{ person.first_name }} </td>
+            <td> {{ person.last_name }} </td>
+            <td> {{ person.email }} </td>
+            <td> {% for r in person.roles %} {{ r }} {% endfor %} </td>
+            <td> 
+                <a href="/person/edit/{{ person.id }}/">edit</a>  
+                | <a href="/person/destroy/{{ person.id }}/">delete</a>  
+            </td>
+        </tr>
+        
     {% endfor %}
-    </ul>
+    </table>
 {% endblock %}

@@ -4,6 +4,7 @@ from account.models import Account
 
 settings.SUBSCRIPTION_LEVELS = (
     {
+        'handle': 'free',
         'name': 'Free Membership',
         'description': 'The free membership is for...',
         'price': 0,
@@ -16,6 +17,7 @@ settings.SUBSCRIPTION_LEVELS = (
         }
     },
     {
+        'handle': 'silver',
         'name': 'Silver Membership',
         'description': 'The silver membership is for...',
         'price': 10000,
@@ -30,6 +32,7 @@ settings.SUBSCRIPTION_LEVELS = (
         }
     },
     {
+        'handle': 'gold',
         'name': 'Gold Membership',
         'description': 'The gold membership is for...',
         'price': 20000,

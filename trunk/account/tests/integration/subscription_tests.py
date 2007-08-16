@@ -191,7 +191,12 @@ change_payment_method_params = dict(
         
 
 class SubscriptionTests(IntegrationTest):
-    fixtures = ['test/accounts.json', 'test/people.json']
+    fixtures = [
+        'test/accounts.json', 
+        'test/people.json', 
+        'test/groups.json', 
+        'test/roles.json',
+    ]
     def setUp(self):
         recurring_payment.gateway = MockGateway()
         recurring_payment.gateway.reset()

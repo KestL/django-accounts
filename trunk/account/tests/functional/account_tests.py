@@ -39,6 +39,9 @@ class AccountTests(TestCase):
         assert not account.has_resource('disk')
         assert not account.has_resource('projects')
         assert account.has_resource('people')
+        assert account.has_level('silver') 
+        assert account.has_level_or_greater('free') 
+        assert account.has_level_or_greater('silver') 
         
         
     def test_gold_subscription_level(self):
@@ -52,4 +55,9 @@ class AccountTests(TestCase):
         assert account.has_resource('disk')
         assert account.has_resource('projects')
         assert not account.has_resource('people')
+        assert account.has_level('gold') 
+        assert account.has_level_or_greater('free') 
+        assert account.has_level_or_greater('silver') 
+        assert account.has_level_or_greater('gold') 
+        
         
