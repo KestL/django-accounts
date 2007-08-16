@@ -48,6 +48,8 @@ class Person(models.Model):
         unique = True,
     )
     
+    
+    # I am going to hell for this.
     new_password = models.CharField(
         'new password', 
         maxlength = 30,
@@ -179,8 +181,13 @@ class Person(models.Model):
         for name in names:
             self.role_set.add(Role.objects.get(name=name))
         
+    def can_be_destroyed(self):
+        return not self.has_roles('account_admin')
                 
         
+    @property
+    def roles(self):
+        return [role.name for role in self.role_set.all()]
         
         
         

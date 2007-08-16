@@ -38,8 +38,12 @@ create_person_parameters_without_password = {
 }
     
 class ProfileTests(IntegrationTest):
-    fixtures = ['test/accounts.json', 'test/people.json']
-    
+    fixtures = [
+        'test/accounts.json', 
+        'test/people.json', 
+        'test/groups.json', 
+        'test/roles.json',
+    ]    
     def test_list(self):
         """
         Tests for profile.list

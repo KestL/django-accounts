@@ -17,5 +17,15 @@
             "account": "1",
             "role_set": [13]
         }
+    },
+    
+    {
+        "pk": "12", 
+        "model": "account.group", 
+        "fields": {
+            "name": "Admins", 
+            "account": "1",
+            "role_set": [13]
+        }
     }
 ]

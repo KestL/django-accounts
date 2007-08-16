@@ -68,6 +68,21 @@ class Account(models.Model):
     def subscription_level(self):
         return settings.SUBSCRIPTION_LEVELS[self.subscription_level_id]
     
+    def _find_level(self, handle):
+        for i, level in enumerate(settings.SUBSCRIPTION_LEVELS):
+            if level['handle'] == handle:
+                return i, level
+        
+            
+    def has_level_or_greater(self, handle):
+        i, level = self._find_level(handle)
+        return self.subscription_level_id >= i
+            
+    def has_level(self, handle):
+        i, level = self._find_level(handle)
+        return self.subscription_level_id == i
+            
+            
         
     def has_resource(self, resource_name):
         if not resource_name:

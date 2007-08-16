@@ -23,7 +23,8 @@
             "last_name": "nicholson",
             "email": "kristi@email.com",
             "account": "1",
-            "role_set": [1]
+            "role_set": [1],
+            "group": "12"
         }
     },
     
@@ -38,6 +39,7 @@
             "email": "third@email.com",
             "account": "2",
             "role_set": []
+            
         }
     }
     

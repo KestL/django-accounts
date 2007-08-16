@@ -21,10 +21,23 @@ class PersonTests(TestCase):
         self.person_one.role_set.add(admin_guest)
 
         
+    def test_roles(self):
+        assert len(self.person_one.roles) == 2
+        assert 'admin' in self.person_one.roles
+        assert 'guest' in self.person_one.roles
+        
     def test_has_admin_role(self):
         self.assertTrue(
             self.person_one.has_roles('admin&guest')
         )
+        
+    def test_can_be_destroyed(self):
+        assert self.person_one.can_be_destroyed()
+        self.person_one.add_role('account_admin')
+        assert not self.person_one.can_be_destroyed()
+        
+        
+        
         
     def test_has_not_super_admin_role(self):
         self.assertFalse(
