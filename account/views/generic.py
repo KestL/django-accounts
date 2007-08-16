@@ -33,7 +33,11 @@ def create(request, model, decorator = lambda x:x,
     """
     
     FormClass = decorator(
-        forms.form_for_model(model)
+        forms.form_for_model(
+            model,
+            fields = get_allowed_fields(request, model),
+        ),
+        request,
     )
     
     template_name = template_name or _make_template_name(model, 'form')
@@ -73,12 +77,17 @@ def edit(request, id, model, decorator = lambda x:x,
     record = get_or_404(request, model, id)
     
     FormClass = decorator(
-        forms.form_for_instance(record), 
+        forms.form_for_instance(
+            record,
+            fields = get_allowed_fields(request, model),
+        ), 
+        request,
         instance = record
     )
     
     template_name = template_name or _make_template_name(model, 'form')
 
+    #import pdb; pdb.set_trace()
     if request.method == 'POST':
         form = FormClass(request.POST)
         if form.is_valid():
@@ -96,6 +105,23 @@ def edit(request, id, model, decorator = lambda x:x,
         )
     )    
     
+def get_allowed_fields(request, model):
+    """
+    Returns a list of names for fields that the
+    current user has permission to edit.
+    """
+    opts = model._meta
+    fields = opts.fields + opts.many_to_many
+    permissions = getattr(model, 'FieldPermissions', None)
+    if not fields:
+        return [f.name for f in fields]
+    if not request.person:
+        return []
+    return [f.name 
+            for f in fields 
+            if request.person.has_roles(
+                getattr(permissions, f.name, '')
+            )]
 
 def destroy(request, id, model, post_destroy_redirect):
     """

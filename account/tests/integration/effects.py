@@ -146,6 +146,11 @@ def person_has_role(role, **criteria):
         assert Person.objects.get(**criteria).has_roles(role)
     return check_role
 
+def person_does_not_have_role(role, **criteria):
+    def check_role(client, response, testcase):
+        assert not Person.objects.get(**criteria).has_roles(role)
+    return check_role
+
 def session_expires_on_close(client, response, testcase):
     testcase.assertEqual(
         response.cookies['sessionid']['max-age'],

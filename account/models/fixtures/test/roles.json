@@ -29,5 +29,12 @@
         "fields": {
             "name": "consultant"
         }
+    },
+    {
+        "pk": "14", 
+        "model": "account.Role", 
+        "fields": {
+            "name": "janitor"
+        }
     }
 ]

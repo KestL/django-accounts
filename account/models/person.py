@@ -22,6 +22,8 @@ class Person(models.Model):
             ("username", "account"),
         )
     
+    class FieldPermissions:
+        role_set = 'account_admin'
             
     username = models.CharField(
         maxlength = 30,

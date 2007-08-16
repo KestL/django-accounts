@@ -1,7 +1,7 @@
 import new
 from django.conf import settings
 from django import newforms as forms
-from ..models import Person, Account, RecurringPayment
+from ..models import Person, Account, RecurringPayment, Role
 from account.lib.payment.errors import PaymentRequestError, PaymentResponseError
 
 class LoginForm(forms.Form):
@@ -406,7 +406,7 @@ class AccountForm(forms.Form):
 # Decorators for generic views
 ##############################################
 
-def decorate_person_form(form, instance=None):
+def decorate_person_form(form, request, instance=None):
     """
     Adds a confirmed password field to form.
     """
@@ -430,6 +430,23 @@ def decorate_person_form(form, instance=None):
             raise forms.ValidationError("Passwords must match")
         return self.cleaned_data['new_password_confirm']
     
+    def clean_role_set(self):
+        """
+        If the account_admin removes that role from himself,
+        quietly, add it back. Otherwise, you'd have no account
+        admin to pay the bills!
+        """
+        if self._errors:
+            return
+        role_data = self.cleaned_data['role_set']
+        if instance and instance == request.person:
+            admin_role = Role.objects.get(name='account_admin')
+            if admin_role in instance.role_set.all() and not admin_role in role_data:
+                role_data.append(admin_role)
+        
+        return role_data
+    
     form.clean_new_password_confirm = clean_new_password_confirm
+    form.clean_role_set = clean_role_set
     return form
 
