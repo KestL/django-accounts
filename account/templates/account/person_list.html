@@ -11,7 +11,9 @@
             <td> {% for r in person.roles %} {{ r }} {% endfor %} </td>
             <td> 
                 <a href="/person/edit/{{ person.id }}/">edit</a>  
-                | <a href="/person/destroy/{{ person.id }}/">delete</a>  
+                {% if person.can_be_destroyed %}
+                    | <a href="/person/destroy/{{ person.id }}/">delete</a>  
+                {% endif %}
             </td>
         </tr>
         
