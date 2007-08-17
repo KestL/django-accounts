@@ -101,7 +101,9 @@ def edit(request, id, model, decorator = lambda x:x,
         template_name,
         context_instance = RequestContext(
             request,
-            {'form': form}
+            {
+                'form': form,
+            }
         )
     )    
     
@@ -123,14 +125,16 @@ def get_allowed_fields(request, model):
                 getattr(permissions, f.name, '')
             )]
 
-def destroy(request, id, model, post_destroy_redirect):
+def destroy(request, id, model, post_destroy_redirect, cancel_url='', template_name=''):
     """
     Generic view for object deletion. Will only destroy
     objects belonging to current account.
     """
-    if request.method == "POST":
-        record = get_or_404(request, model, id)
+    record = get_or_404(request, model, id)
+    if not getattr(record, 'can_be_destroyed', lambda: True)():
+        return HttpResponseForbidden('This record cannot be destroyed.')
         
+    if request.method == "POST":
         if record in [request.account, request.person]:
             return HttpResponseForbidden()
             
@@ -139,7 +143,14 @@ def destroy(request, id, model, post_destroy_redirect):
             post_destroy_redirect
         )
     else:
-        return helpers.requires_post()
+        return helpers.render(
+            request,
+            template_name or 'account/confirm_destroy.html',
+            {
+                'record': record,
+                'cancel_url': cancel_url or post_destroy_redirect,
+            }
+        )
     
     
 

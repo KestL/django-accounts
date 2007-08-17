@@ -492,7 +492,7 @@ class ProfileTests(IntegrationTest):
                 causes.valid_domain,
             ],
             [
-                effects.status(405),
+                effects.rendered('account/confirm_destroy.html')
             ]
         )
     
