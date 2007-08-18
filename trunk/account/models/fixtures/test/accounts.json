@@ -3,7 +3,8 @@
         "pk": "1", 
         "model": "account.Account", 
         "fields": {
-            "domain": "starr.localhost.com", 
+            "subdomain": "starr",
+            "domain": "localhost", 
             "name": "Starr's website",
             "subscription_level_id": 1 
         }
@@ -12,7 +13,8 @@
         "pk": "2", 
         "model": "account.Account", 
         "fields": {
-            "domain": "kristi.localhost.com", 
+            "subdomain": "kristi",
+            "domain": "localhost", 
             "name": "Kristi's website",
             "subscription_level_id": 2 
         }

@@ -51,17 +51,22 @@
 <tr>
 	<td>select</td>
 	<td>id_timezone</td>
-	<td>value=1</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id_subdomain</td>
-	<td>user1</td>
+	<td>label=(GMT-05:00) Eastern Time (US & Canada)</td>
 </tr>
 <tr>
 	<td>click</td>
 	<td>id_terms_of_service</td>
 	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id_domain</td>
+	<td>label=localhost</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id_subdomain</td>
+	<td>user1</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>

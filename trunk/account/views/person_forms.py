@@ -4,6 +4,22 @@ from django import newforms as forms
 from ..models import Person, Account, RecurringPayment, Role
 from account.lib.payment.errors import PaymentRequestError, PaymentResponseError
 
+class ManualFormHelpers(object):
+    def load_from_instance(self, instance, fields=None):
+        model = instance.__class__
+        opts = model._meta
+        field_list = []
+        for f in opts.fields + opts.many_to_many:
+            if not f.editable:
+                continue
+            if fields and not f.name in fields:
+                continue
+            if f.name in self.fields:
+                self.fields[f.name].initial = getattr(instance, f.name)
+
+    
+    
+    
 class LoginForm(forms.Form):
     
     username = forms.CharField(
@@ -187,14 +203,16 @@ class SignupForm(forms.Form, SavesPayment):
     )
     timezone = forms.ChoiceField(
         label = "Time zone",
-        choices = enumerate(settings.ACCOUNT_TIME_ZONES)
+        choices = settings.ACCOUNT_TIME_ZONES,
+        initial = settings.ACCOUNT_DEFAULT_TIME_ZONE,
+    )
+    # Domain must come BEFORE subdomain. Cleaning order is important.
+    domain = forms.ChoiceField(
+        choices = settings.ACCOUNT_DOMAINS
     )
     subdomain = forms.CharField(
         min_length = 2,
         max_length = 30,        
-    )
-    root_domain = forms.ChoiceField(
-        choices = enumerate(settings.ACCOUNT_DOMAINS)
     )
             
     #card_type = forms.ChoiceField(
@@ -216,13 +234,6 @@ class SignupForm(forms.Form, SavesPayment):
         label = "I agree to the Terms of Service, Refund, and Privacy policies"
     )
         
-    def clean_timezone(self):
-        try:
-            return settings.ACCOUNT_TIME_ZONES[int(self.cleaned_data['timezone'])]
-        except ValueError:
-            raise form.ValidationError(
-                "Invalid Time Zone"
-            )
         
     def clean_password2(self):
         if self.cleaned_data['password'] != self.cleaned_data['password2']:
@@ -237,20 +248,19 @@ class SignupForm(forms.Form, SavesPayment):
                 "Your subdomain can only include letters and numbers."
             )
         
-        self.cleaned_data['domain'] = '%s.%s' % (
-            self.cleaned_data['subdomain'],
-            settings.ACCOUNT_DOMAINS[
-                int(self.data['root_domain'])
-            ]
-        )
         try:
-            Account.objects.get(domain = self.cleaned_data['domain'])
+            Account.objects.get(
+                subdomain = self.cleaned_data['subdomain'],
+                domain = self.data['domain'],
+            )
             raise forms.ValidationError(
-                "The domain %s has already been taken" % self.cleaned_data['domain']
+                "The domain %s.%s has already been taken" % (
+                    self.cleaned_data['subdomain'],
+                    self.cleaned_data['domain']
+                )
             )
         except Account.DoesNotExist:
             pass
-        
         return self.cleaned_data['subdomain']
     
         
@@ -268,6 +278,7 @@ class SignupForm(forms.Form, SavesPayment):
     def save_account(self, level):
         account = Account(
             domain = self.cleaned_data['domain'],
+            subdomain = self.cleaned_data['subdomain'],
             timezone = self.cleaned_data['timezone'],
             name = self.cleaned_data['group'],
             subscription_level_id = level,
@@ -344,7 +355,7 @@ class UpgradeForm(forms.Form, SavesPayment):
 
 
 
-class AccountForm(forms.Form):
+class AccountForm(forms.Form, ManualFormHelpers):
     name = forms.CharField(
         label = "Company / Organization",
         min_length = 2,
@@ -352,14 +363,14 @@ class AccountForm(forms.Form):
     )
     timezone = forms.ChoiceField(
         label = "Time zone",
-        choices = enumerate(settings.ACCOUNT_TIME_ZONES)
+        choices = settings.ACCOUNT_TIME_ZONES
     )
     subdomain = forms.CharField(
         min_length = 2,
         max_length = 30,        
     )
-    root_domain = forms.ChoiceField(
-        choices = enumerate(settings.ACCOUNT_DOMAINS)
+    domain = forms.ChoiceField(
+        choices = settings.ACCOUNT_DOMAINS
     )
             
     def clean_subdomain(self):
@@ -369,33 +380,17 @@ class AccountForm(forms.Form):
             )
         return self.cleaned_data['subdomain']
     
-    def clean_timezone(self):
-        try:
-            return settings.ACCOUNT_TIME_ZONES[int(self.cleaned_data['timezone'])]
-        except ValueError:
-            raise form.ValidationError(
-                "Invalid Time Zone"
-            )
-    
-    def clean(self):
-        if self.errors:
-            return
-        self.cleaned_data['domain'] = '%s.%s' % (
-            self.cleaned_data['subdomain'],
-            settings.ACCOUNT_DOMAINS[
-                int(self.cleaned_data['root_domain'])
-            ]
-        )
-        return self.cleaned_data
     
         
     def update_account(self, account):
-        for n in ['name', 'domain', 'timezone']:
+        for n in ['name', 'subdomain', 'domain', 'timezone']:
             setattr(account, n, self.cleaned_data[n])
         if not account.validate():
             account.save()
             return account
         else:
+            #import pdb; pdb.set_trace()
+            
             raise ValueError
         
     

@@ -128,14 +128,16 @@ def account_has_payment_method(client, parameters):
     )
     return client, parameters
     
-domain = '%s.%s' % ('billybob', settings.ACCOUNT_DOMAINS[0])
+domain = '%s.%s' % ('billybob', settings.ACCOUNT_DOMAINS[1][0])
 
 def delete_test_account(client, parameters):    """
     Delete the test account created by our Signup tests.
     """
     try:
         Person.objects.get(username = 'billybob').delete()
-        Account.objects.get(domain = domain).delete()
+        Account.objects.get(
+            subdomain = signup_params_no_cc['subdomain'],
+            domain = signup_params_no_cc['domain']).delete()
     except (Person.DoesNotExist, Account.DoesNotExist):
         pass
     return client, parameters
@@ -171,9 +173,9 @@ signup_params_no_cc = dict(
     password = 'password',
     password2 = 'password',
     group = 'billybob carpet cleaning',
-    timezone = 0,
+    timezone = settings.ACCOUNT_TIME_ZONES[0][0],
     subdomain = 'billybob',
-    root_domain = 0,
+    domain = settings.ACCOUNT_DOMAINS[1][0],
     terms_of_service = True,
 )
 cc_params = dict(
@@ -304,7 +306,11 @@ class SubscriptionTests(IntegrationTest):
                 effects.redirected_to_url(
                     "http://%s/" % domain
                 ),
-                effects.exists(Account, domain = domain),
+                effects.exists(
+                    Account, 
+                    subdomain = signup_params_no_cc['subdomain'],
+                    domain = signup_params_no_cc['domain'],
+                ),
                 effects.exists(Person, email = 'billybob@lala.net'),
                 effects.person_has_role('account_admin', username = 'billybob'),
             ]
@@ -347,7 +353,11 @@ class SubscriptionTests(IntegrationTest):
                 effects.redirected_to_url(
                     "http://%s/" % domain
                 ),
-                effects.exists(Account, domain = domain),
+                effects.exists(
+                    Account, 
+                    subdomain = signup_params_no_cc['subdomain'],
+                    domain = signup_params_no_cc['domain'],
+                ),
                 effects.exists(Person, email = 'billybob@lala.net'),
                 effects.person_has_role('account_admin', username = 'billybob'),
                 effects.exists(RecurringPayment, name = 'billy bob'),
@@ -472,7 +482,7 @@ class SubscriptionTests(IntegrationTest):
             [
                 effects.exists(
                     RecurringPayment, 
-                    account__domain = 'starr.localhost.com'
+                    account__subdomain = 'starr'
                 ),
                 effects.rendered('account/payment_method_form.html'),
                 effects.status(200)
@@ -529,7 +539,7 @@ class SubscriptionTests(IntegrationTest):
                 gateway_cancel_called,
                 effects.does_not_exist(
                     RecurringPayment, 
-                    account__domain = 'starr.localhost.com'
+                    account__pk = 1,
                 ),
                 effects.does_not_exist(
                     RecurringPayment, 
@@ -564,7 +574,7 @@ class SubscriptionTests(IntegrationTest):
                 gateway_cancel_called,
                 effects.exists(
                     RecurringPayment, 
-                    account__domain = 'starr.localhost.com'
+                    account__pk = 1,
                 ),
                 effects.count(1, RecurringPayment, name = 'Bob Jones'),
                 effects.count(0, RecurringPayment, name = 'billy bob'),
@@ -597,7 +607,7 @@ class SubscriptionTests(IntegrationTest):
                 gateway_cancel_called,
                 effects.exists(
                     RecurringPayment, 
-                    account__domain = 'starr.localhost.com'
+                    account__pk = 1,
                 ),
                 effects.outbox_len(1),
                 effects.count(1, RecurringPayment, name = 'Bob Jones'),
@@ -630,7 +640,7 @@ class SubscriptionTests(IntegrationTest):
                 gateway_cancel_called,
                 effects.exists(
                     RecurringPayment, 
-                    account__domain = 'starr.localhost.com'
+                    account__pk = 1,
                 ),
                 effects.outbox_len(1),
                 effects.count(0, RecurringPayment, name = 'Bob Jones'),
@@ -946,30 +956,32 @@ class SubscriptionTests(IntegrationTest):
         )
         #-------------------------------------------------
         # If everything's valid, changes are saved
+        # The user is redirected to the subdomain.domain
         #-------------------------------------------------
+        edit_account_params = dict(
+            subdomain = 'newname',
+            domain = settings.ACCOUNT_DOMAINS[1][0],
+            name = 'newname',
+            timezone = settings.ACCOUNT_TIME_ZONES[1][0],
+        )
         self.assertState(
             'POST',
             EDIT_ACCOUNT_PATH,
             [
                 causes.valid_domain,
                 causes.owner_logged_in,
-                causes.params(
-                    subdomain = 'newname',
-                    root_domain = '1',
-                    name = 'newname',
-                    timezone = '1',
-                ),
+                causes.params(**edit_account_params),
             ],
             [
                 effects.field_value(
                     Account, 
                     {'pk': 1}, 
-                    name = 'newname',
-                    domain = 'newname.%s' % settings.ACCOUNT_DOMAINS[1],
-                    timezone = settings.ACCOUNT_TIME_ZONES[1],
+                    **edit_account_params
                 ),
-                effects.status(200),
-                effects.rendered('account/account_form.html'),
+                effects.redirected_to_url(
+                    'http://%s.%s/account/' % (
+                        edit_account_params['subdomain'], 
+                        settings.ACCOUNT_DOMAINS[1][0])),
             ]
         )
         

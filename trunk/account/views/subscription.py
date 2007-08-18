@@ -51,8 +51,13 @@ def edit_account(request):
         form = AccountForm(request.POST)
         if form.is_valid():
             form.update_account(request.account)
+            return HttpResponseRedirect(
+                'http://%s/account/' % request.account.full_domain
+            )
+            
     else:
         form = AccountForm()
+        form.load_from_instance(request.account)
     return helpers.render(
         request,
         'account/account_form.html',
@@ -220,6 +225,8 @@ def create(request, level):
     
     get_card_info = subscription_level.get('price')
     
+
+    
     if request.method == 'POST':
         form = SignupForm(
             get_card_info,
@@ -235,7 +242,7 @@ def create(request, level):
                 person.add_role('account_admin')
             
                 return HttpResponseRedirect(
-                    'http://%s/' % form.cleaned_data['domain']
+                    'http://%s/' % account.full_domain
                 )
             except ValueError:
                 # Either person or account could not be created.
