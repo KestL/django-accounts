@@ -25,7 +25,7 @@ def person_logged_in(client, parameters):
             'username': 'snhorne', 
             'password': 'password',
         },
-        HTTP_HOST = 'starr.localhost.com',
+        HTTP_HOST = 'starr.localhost',
         HTTPS = 'on',
     )
     return client, parameters
@@ -38,7 +38,7 @@ def owner_logged_in(client, parameters):
             'username': 'kmnicholson', 
             'password': 'password',
         },
-        HTTP_HOST = 'starr.localhost.com',
+        HTTP_HOST = 'starr.localhost',
         HTTPS = 'on',
     )
     return client, parameters
@@ -50,13 +50,13 @@ def person_not_logged_in(client, parameters):
 
 def valid_domain(client, parameters):
     """ Sets a valid domain """
-    client.defaults['HTTP_HOST'] = 'starr.localhost.com'
+    client.defaults['HTTP_HOST'] = 'starr.localhost'
     return client, parameters
 
 def mismatched_domain(client, parameters):
     """ Sets a domain that is valid but doesn't 
     include the default user """
-    client.defaults['HTTP_HOST'] = 'kristi.localhost.com'
+    client.defaults['HTTP_HOST'] = 'kristi.localhost'
     return client, parameters
 
 def invalid_domain(client, parameters):

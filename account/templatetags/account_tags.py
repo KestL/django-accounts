@@ -94,18 +94,23 @@ class ResourceCheckNode(ShowHideNode):
     
     
     
-make_parser(RoleCheckNode, 'role')
-make_parser(GroupCheckNode, 'group')
-make_parser(PersonLoggedInCheckNode, 'personloggedin')
-make_parser(SubscriptionLevelCheckNode, 'level')
-make_parser(SubscriptionLevelOrGreaterCheckNode, 'levelmin')
-make_parser(ResourceCheckNode, 'resource')
+make_parser(RoleCheckNode, 'ifrole')
+make_parser(GroupCheckNode, 'ifgroup')
+make_parser(PersonLoggedInCheckNode, 'ifpersonloggedin')
+make_parser(SubscriptionLevelCheckNode, 'iflevel')
+make_parser(SubscriptionLevelOrGreaterCheckNode, 'iflevelmin')
+make_parser(ResourceCheckNode, 'ifresource')
 
 
 
 
-
-
+@register.simple_tag
+def postlink(url, label):
+    return """
+        <form class="postlink" method="POST" action="%s">
+                <input id="account_logout" type="SUBMIT" value="%s"/>
+        </form>
+    """ % (label, url)
 
 
 

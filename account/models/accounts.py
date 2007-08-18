@@ -10,16 +10,25 @@ class Account(models.Model):
     
     class Meta:
         app_label = 'account'
+        unique_together = (
+            ("subdomain", "domain"),
+        )
+    
+    subdomain = models.CharField(
+        verbose_name = "Sub-domain",
+        maxlength = 50,
+    )
     
     domain = models.CharField(
         verbose_name = "Domain Name",
-        maxlength = 40,
-        unique = True,
+        maxlength = 150,
+        choices = settings.ACCOUNT_DOMAINS,
     )
     
     timezone = models.CharField(
-        maxlength = 20,
+        maxlength = 50,
         default = 'utc',
+        choices = settings.ACCOUNT_TIME_ZONES,
     )
     
     name = models.CharField(
@@ -48,6 +57,10 @@ class Account(models.Model):
         editable = False,
         default = 0,
     )   
+    
+    @property
+    def full_domain(self):
+        return "%s.%s" % (self.subdomain, self.domain)
     
     def _get_recurring_payment(self):
         """
@@ -102,12 +115,14 @@ class Account(models.Model):
     @classmethod
     def load_from_request(cls, request):
         try:
+            pieces = request.META['HTTP_HOST'].split('.')
             request.account = Account.objects.get(
-                domain = request.META['HTTP_HOST'],
-            )        
+                subdomain = pieces[0],
+                domain = '.'.join(pieces[1:]),
+            )
         except (models.ObjectDoesNotExist, KeyError):
             request.account = None
-            
+        
         return request.account
         
         

@@ -9,12 +9,13 @@
         {% block logout %}
             {% if person %}
                 Logged in as {{ person.first_name }}
-                <form method="POST" action="{% url account.views.authentication.logout %}">
-                    <input id="account_logout" type="SUBMIT" value="Logout"/>
-                </form>
-                {% role account_admin %}
-                    You are the account admin.
-                {% endrole %}
+                <ul>
+                    <li>{% postlink "Logout" "/person/logout/" %}</li>
+                    <li><a href="/person/"> Personal Settings </a></li>
+                    {% ifrole account_admin %}
+                        <li><a href="/account/"> Account Settings </a></li>
+                    {% endifrole %}
+                </ul>
             {% endif %}
         {% endblock %}
     </div>

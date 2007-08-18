@@ -25,23 +25,23 @@ class AccountTagsTests(TestCase):
         })
     
     def has_role(self, role, context):
-        t = Template("{%% role %s %%}PASS{%% endrole %%}" % role)
+        t = Template("{%% ifrole %s %%}PASS{%% endifrole %%}" % role)
         return t.render(context) == 'PASS'
     
     def has_group(self, group, context):
-        t = Template("{%% group %s %%}PASS{%% endgroup %%}" % group)
+        t = Template("{%% ifgroup %s %%}PASS{%% endifgroup %%}" % group)
         return t.render(context) == 'PASS'
     
     def has_level(self, level, context):
-        t = Template("{%% level %s %%}PASS{%% endlevel %%}" % level)
+        t = Template("{%% iflevel %s %%}PASS{%% endiflevel %%}" % level)
         return t.render(context) == 'PASS'
     
     def has_level_min(self, level, context):
-        t = Template("{%% levelmin %s %%}PASS{%% endlevelmin %%}" % level)
+        t = Template("{%% iflevelmin %s %%}PASS{%% endiflevelmin %%}" % level)
         return t.render(context) == 'PASS'
     
     def has_resource(self, resource, context):
-        t = Template("{%% resource %s %%}PASS{%% endresource %%}" % resource)
+        t = Template("{%% ifresource %s %%}PASS{%% endifresource %%}" % resource)
         return t.render(context) == 'PASS'
         
         
