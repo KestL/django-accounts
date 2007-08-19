@@ -1,16 +1,16 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>signup_test</title>
+<title>signup_good_cc</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">signup_test</td></tr>
+<tr><td rowspan="1" colspan="3">signup_good_cc</td></tr>
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/account/create/0/</td>
+	<td>/account/create/1/</td>
 	<td></td>
 </tr>
 <tr>
@@ -26,7 +26,7 @@
 <tr>
 	<td>type</td>
 	<td>id_email</td>
-	<td>starr@email.com</td>
+	<td>starrx@email.com</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -65,8 +65,18 @@
 </tr>
 <tr>
 	<td>type</td>
+	<td>id_card_expiration</td>
+	<td>3/18/2008</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id_card_number</td>
+	<td>4111111111111111</td>
+</tr>
+<tr>
+	<td>type</td>
 	<td>id_subdomain</td>
-	<td>user1</td>
+	<td>user2</td>
 </tr>
 
 </tbody></table>

@@ -1,4 +1,5 @@
 import new
+import logging
 from django.conf import settings
 from django import newforms as forms
 from ..models import Person, Account, RecurringPayment, Role
@@ -125,7 +126,7 @@ class SavesPayment(object):
         
         except PaymentRequestError:
             # The payment gateway rejected our request.
-            self._errors['__all__'] = "We were unable to verify your payment info. Did you mistype something?"
+            self._errors['card_number'] = [u"We were unable to verify your credit card. Did you mistype something?"]
             raise    
 
     def clean_card_expiration(self):
@@ -352,6 +353,10 @@ class UpgradeForm(forms.Form, SavesPayment):
     def __init__(self, requires_payment, *args, **kwargs):
         self.requires_payment = requires_payment
         forms.Form.__init__(self, *args, **kwargs)
+            
+        #if not requires_payment:
+            #for field in self.fields.values():
+                #field.widget = forms.HiddenInput()
 
 
 
@@ -389,8 +394,10 @@ class AccountForm(forms.Form, ManualFormHelpers):
             account.save()
             return account
         else:
-            #import pdb; pdb.set_trace()
-            
+            logging.debug(str(account.subscription_level_id))
+            logging.debug(
+                'UPDATE_ACCOUNT validation errors: %s' % str(account.validate())
+            )
             raise ValueError
         
     

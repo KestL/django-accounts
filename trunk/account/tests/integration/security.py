@@ -38,8 +38,25 @@ def check(self, path, *extra_causes):
         'GET/POST',
         path,
         [
+            causes.person_logged_in,
+            causes.valid_domain,
+            causes.account_inactive,
+        ] + list(extra_causes),
+        [
+            effects.redirected('/account/inactive/', ssl=True),
+        ]
+    )
+    check_account_inactive_ok(self, path, *extra_causes)
+    
+    
+def check_account_inactive_ok(self, path, *extra_causes):
+    self.assertState(
+        'GET/POST',
+        path,
+        [
             causes.person_not_logged_in,
             causes.valid_domain,
+            causes.account_active,
         ] + list(extra_causes),
         [
             effects.redirected('/person/login/', ssl=True),
@@ -95,9 +112,11 @@ def check(self, path, *extra_causes):
         [
             causes.person_logged_in,
             causes.valid_domain,
+            causes.account_active,
         ] + list(extra_causes),
         [
             effects.status(403),
         ]
     )
+    
     

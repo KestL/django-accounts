@@ -6,6 +6,7 @@ import random
 from accounts import Account
 from group import Group
 from role import Role
+from django.conf import settings
 from parser import SimpleRoleParser
 
 
@@ -47,7 +48,6 @@ class Person(models.Model):
     )
     
     email = models.EmailField(
-        unique = True,
     )
     
     
@@ -112,7 +112,15 @@ class Person(models.Model):
         Sends an e-mail to this Person.
         """
         from django.core.mail import send_mail
-        send_mail(subject, message, from_email, [self.email])
+        send_mail(
+            subject, 
+            message, 
+            from_email, 
+            [self.email], 
+            fail_silently = settings.EMAIL_FAIL_SILENTLY,
+        )
+            
+            
         
     def login(self, request):
         """
@@ -169,9 +177,11 @@ class Person(models.Model):
         """
         if not roles_string:
             return True
-        if self.group:
-            if self.group.has_roles(roles_string):
+        try:
+            if self.group and self.group.has_roles(roles_string):
                 return True
+        except Group.DoesNotExist:
+            pass
         p=SimpleRoleParser(roles_string)
         r=[role.name for role in self.role_set.all()]
         return p.has_roles(r)        

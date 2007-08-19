@@ -92,6 +92,15 @@ class ResourceCheckNode(ShowHideNode):
         account = resolve_variable('account', context)
         return account.has_resource(self.arg)
     
+class RequiresPaymentCheckNode(ShowHideNode):
+    """
+    Shows content if account in context has a certain
+    subscription level
+    """
+    def _show(self, context):
+        account = resolve_variable('account', context)
+        return account.requires_payment()
+    
     
     
 make_parser(RoleCheckNode, 'ifrole')

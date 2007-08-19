@@ -1,7 +1,9 @@
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseForbidden
+import logging
+from django.http import HttpResponseServerError, Http404, HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template import loader, Context
 from django.contrib.auth import authenticate, logout
 from person_forms import LoginForm, ResetPasswordForm
+from django.conf import settings
 import generic
 from ..models import Person
 from .. import helpers
@@ -41,7 +43,17 @@ def login(request):
     if request.method == "POST":    
         loginform = LoginForm(request.POST)
         if loginform.login(request):            
-            return HttpResponseRedirect('/')
+            if request.account.active:
+                return HttpResponseRedirect('/')
+            elif request.person.has_roles('account_admin'):
+                import subscription
+                if request.account.subscription_level['price']:
+                    return helpers.redirect(subscription.change_payment_method)
+                else:
+                    return helpers.redirect(subscription.reactivate_free_account)
+            else:
+                return HttpResponseRedirect('/account/inactive/')
+                
     else:
         loginform = LoginForm()
         
@@ -73,9 +85,10 @@ def reset_password(request):
             })
             person.send_email(
                 "Your password has been reset.", 
-                t.render(c)
+                t.render(c),
             )
             person.save()
+            logging.debug("Reset password for user #%i to '%s'" % (person.id, new_password))
             
             return helpers.render(
                 request,

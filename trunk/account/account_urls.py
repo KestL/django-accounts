@@ -15,6 +15,16 @@ urlpatterns = patterns('',
         }
     ),
     (
+        r'^inactive/$', 
+        'django.views.generic.simple.direct_to_template', 
+        {
+            'template': 'account/inactive.html',
+            'meta': {
+                'inactive_account_ok': True,
+            }
+        }
+    ),
+    (
         r'^upgrade/(\d+)/$', 
         _sub('upgrade'), 
         {
@@ -43,6 +53,18 @@ urlpatterns = patterns('',
                 'requires_login': True,
                 'roles': 'account_admin',
                 'ssl': True,
+                'inactive_account_ok': True,
+            },
+        }
+    ),
+    (
+        r'^reactivate_free_account/$', 
+        _sub('reactivate_free_account'), 
+        {
+            'meta': {
+                'requires_login': True,
+                'roles': 'account_admin',
+                'inactive_account_ok': True,
             },
         }
     ),

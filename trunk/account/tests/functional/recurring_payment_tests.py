@@ -18,7 +18,7 @@ class RecurringPaymentTests(TestCase):
         account = Account.objects.get(pk=2)
         payment = RecurringPayment.create(
             account = account, 
-            amount = '29.99', 
+            amount = 2999, 
             card_number = '4111111111111111', 
             card_expires = date.today(), 
             first_name = 'Bob', 

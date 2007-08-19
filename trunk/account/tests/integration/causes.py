@@ -53,6 +53,19 @@ def valid_domain(client, parameters):
     client.defaults['HTTP_HOST'] = 'starr.localhost'
     return client, parameters
 
+def account_inactive(client, parameters):
+    account = Account.objects.get(pk=1)
+    account.active = False
+    account.save()
+    return client, parameters
+
+def account_active(client, parameters):
+    """ Sets a valid domain """
+    account = Account.objects.get(pk=1)
+    account.active = True
+    account.save()
+    return client, parameters
+
 def mismatched_domain(client, parameters):
     """ Sets a domain that is valid but doesn't 
     include the default user """
@@ -87,6 +100,14 @@ def valid_login_parameters(client, parameters):
     """ Sets login params for default user """
     parameters.update({
         'username': 'snhorne',
+        'password': 'password',
+    })
+    return client, parameters
+
+def valid_admin_login_parameters(client, parameters):
+    """ Sets login params for admin user """
+    parameters.update({
+        'username': 'kmnicholson',
         'password': 'password',
     })
     return client, parameters

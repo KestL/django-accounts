@@ -13,6 +13,7 @@ urlpatterns = patterns('',
             'meta': {
                 'requires_logout': True,
                 'ssl': True,
+                'inactive_account_ok': True,
             },
         }
     ),
@@ -22,6 +23,7 @@ urlpatterns = patterns('',
         {
             'meta': {
                 'requires_login': True,
+                'inactive_account_ok': True,
             },
         }
     ),

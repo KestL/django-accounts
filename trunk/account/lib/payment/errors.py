@@ -1,3 +1,5 @@
+import logging
+
 class PaymentRequestError(Exception):
     """
     Exception raised when the data sent to
@@ -5,6 +7,7 @@ class PaymentRequestError(Exception):
     """
     def __init__(self, messages):
         self.messages = messages
+        logging.debug('PaymentRequestError: ' + str(messages))
     def __str__(self):
         return str(self.messages)
     
@@ -15,5 +18,6 @@ class PaymentResponseError(Exception):
     """
     def __init__(self, response):
         self.response = response
+        logging.debug('PaymentResponseError: ' + str(response))
     def __str__(self):
         return str(self.response)

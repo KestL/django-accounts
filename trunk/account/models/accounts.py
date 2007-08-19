@@ -36,16 +36,14 @@ class Account(models.Model):
         maxlength = 40,
     )
     
-    #TODO: Implement account-specific file storage
-    #logo = PhotoField(
-        #verbose_name = "Company Logo",
-        #upload_to = 'logos/%y%m%d%H%M%S',
-        #width = 100,
-        #blank = True,
-    #)
     
     created_on = models.DateTimeField(
         auto_now_add = True,
+    )
+    
+    active = models.BooleanField(
+        default = True,
+        blank = True,
     )
     
     website = models.URLField(
@@ -53,11 +51,15 @@ class Account(models.Model):
         blank = True,
     )
     
+    # Stupid django bug alert. Django will think 
+    # that no value has been passed if the value is 0
     subscription_level_id = models.IntegerField(
-        editable = False,
         default = 0,
+        blank = True,
     )   
     
+        
+        
     @property
     def full_domain(self):
         return "%s.%s" % (self.subdomain, self.domain)
@@ -65,7 +67,8 @@ class Account(models.Model):
     def _get_recurring_payment(self):
         """
         This is a hack to avoid 1-to-1 relationship, since that
-        will supposedly be changing soon.
+        will supposedly be changing soon. Is there a better way
+        to do this?
         """
         try:
             return self.recurring_payment_set.all()[0]
@@ -86,6 +89,8 @@ class Account(models.Model):
             if level['handle'] == handle:
                 return i, level
         
+    def requires_payment(self):
+        return self.subscription_level['price'] > 0
             
     def has_level_or_greater(self, handle):
         i, level = self._find_level(handle)
