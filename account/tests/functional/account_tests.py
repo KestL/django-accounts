@@ -42,6 +42,7 @@ class AccountTests(TestCase):
         assert account.has_level('silver') 
         assert account.has_level_or_greater('free') 
         assert account.has_level_or_greater('silver') 
+        assert account.requires_payment()
         
         
     def test_gold_subscription_level(self):
@@ -59,5 +60,7 @@ class AccountTests(TestCase):
         assert account.has_level_or_greater('free') 
         assert account.has_level_or_greater('silver') 
         assert account.has_level_or_greater('gold') 
+        assert account.requires_payment()
         
+  
         

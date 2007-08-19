@@ -124,7 +124,7 @@ class AuthenticationTests(IntegrationTest):
             [
                 effects.logged_in,
                 effects.redirected('/'),
-                effects.logged_in,
+                effects.logged_in, # Make sure we're still logged in after redirect.
                 effects.session_expires_on_close,
             ]
         )
@@ -137,7 +137,40 @@ class AuthenticationTests(IntegrationTest):
                 causes.person_not_logged_in,
                 causes.valid_domain,
                 causes.valid_login_parameters,
+                causes.account_inactive,
+            ],
+            [
+                effects.logged_in,
+                effects.redirected('/account/inactive/'),
+            ]
+        )
+        
+        self.assertState(
+            'POST',
+            LOGIN_PATH,
+            [
+                causes.ssl,
+                causes.person_not_logged_in,
+                causes.valid_domain,
+                causes.valid_admin_login_parameters,
+                causes.account_inactive,
+            ],
+            [
+                effects.person_logged_in(pk = 2),
+                effects.redirected('/account/change_payment_method/'),
+            ]
+        )
+    
+        self.assertState(
+            'POST',
+            LOGIN_PATH,
+            [
+                causes.ssl,
+                causes.person_not_logged_in,
+                causes.valid_domain,
+                causes.valid_login_parameters,
                 causes.remember_me_checked,
+                causes.account_active,
             ],
             [
                 effects.logged_in,
@@ -155,6 +188,7 @@ class AuthenticationTests(IntegrationTest):
                 causes.person_not_logged_in,
                 causes.valid_domain,
                 causes.invalid_login_parameters,
+                causes.account_active,
             ],
             [
                 effects.not_logged_in,
@@ -171,6 +205,7 @@ class AuthenticationTests(IntegrationTest):
                 causes.person_logged_in,
                 causes.mismatched_domain,
                 causes.no_login_parameters,
+                causes.account_active,
             ],
             [
                 effects.not_logged_in,

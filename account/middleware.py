@@ -1,4 +1,4 @@
-from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponsePermanentRedirect, get_host
+from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponsePermanentRedirect, get_host, HttpResponseRedirect
 from models import Account, Person
 from django.core.exceptions import ObjectDoesNotExist
 import views.authentication
@@ -62,17 +62,21 @@ class AccountBasedAuthentication(object):
         meta['roles'] == None or '' or <not set>
             Show view without checking roles.
         """
+        
+        
         if 'meta' not in view_kwargs:
             return None
         
         meta = view_kwargs.pop('meta')
         
+        # SSL 
         if meta.get('ssl') and not request.is_secure():
             if request.method == 'GET':
                 return self._redirect(request, True)
             else:
                 return HttpResponseForbidden()
         
+        # Requires account
         account = getattr(request, 'account', None)
         
         if meta.get('requires_account', True):
@@ -83,7 +87,14 @@ class AccountBasedAuthentication(object):
                 raise Http404
             else:
                 return None
+            
+        # Requires account to be active
+        if not account.active:
+            if not meta.get('inactive_account_ok'):
+                return HttpResponseRedirect('/account/inactive/')
+            
         
+        # Requires login
         if 'roles' in meta:
             meta['requires_login'] = True
             
@@ -97,6 +108,7 @@ class AccountBasedAuthentication(object):
                 views.authentication.login
             )
         
+        # Requires reource
         if not account.has_resource(meta.get('requires_resource')):
             return helpers.redirect(
                 views.subscription.upgrade
@@ -105,6 +117,7 @@ class AccountBasedAuthentication(object):
         if not person:
             return None
                 
+        # Requires role
         if person.has_roles(meta.get('roles')):
             return None
         else:

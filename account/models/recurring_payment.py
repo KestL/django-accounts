@@ -54,22 +54,25 @@ class RecurringPayment(models.Model):
     def save(self, *args, **kwargs):
         if not self.active_on:
             self.active_on = date.today()
+        if self.account and not self.account.active:
+            self.account.active = True
+            self.account.save()
         super(RecurringPayment, self).save(*args, **kwargs)
     
     @classmethod
     def create(cls, account, amount, card_number, card_expires, first_name, last_name, period=1, start_date=None,**kwargs):
         
         token = str(account.id)
-        amount = str(amount)
+        amount = str(amount)        amount = amount[:-2] + '.' + amount[-2:]
         
         gateway_token = gateway.start_payment(
             url = settings.PAYMENT_GATEWAY_URL,
             login = settings.PAYMENT_GATEWAY_LOGIN,
             password = settings.PAYMENT_GATEWAY_PASSWORD,
             token = token,
-            amount = amount[:-2] + '.' + amount[-2:],
+            amount = amount,
             card_number = card_number,
-            card_expires = card_expires.strftime('Y-m'),
+            card_expires = card_expires.strftime('%Y-%m'),
             first_name = first_name,
             last_name = last_name,
             period = period, 
@@ -94,7 +97,7 @@ class RecurringPayment(models.Model):
             url = settings.PAYMENT_GATEWAY_URL,
             login = settings.PAYMENT_GATEWAY_LOGIN,
             password = settings.PAYMENT_GATEWAY_PASSWORD,            
-            amount = amount,
+            amount = amount[:-2] + '.' + amount[-2:],
             gateway_token = self.gateway_token,
             **kwargs
         )
@@ -108,9 +111,13 @@ class RecurringPayment(models.Model):
             gateway_token = self.gateway_token,
             **kwargs
         )
-        self.cancelled_at = datetime.now()
+        self.deactivate()
         
     
+    def deactivate(self):
+        self.cancelled_at = datetime.now()
+        
+        
     def is_active(self):
         return not self.cancelled_at
         

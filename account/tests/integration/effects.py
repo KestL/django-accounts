@@ -11,22 +11,43 @@ def breakpoint(client, response, testcase):
     pdb.set_trace()
     
     
-def logged_in(client, response, testcase):
-    """ Check that the default person is logged in """
-    person = Person.objects.get(username = 'snhorne')
+#def logged_in(client, response, testcase):
+    #""" Check that the default person is logged in """
+    #person = Person.objects.get(username = 'snhorne')
     
-    # client.previous_request is only available
-    # in patched test client.
-    if hasattr(client, 'previous_request'):
-        testcase.assertEqual(
-            client.previous_request.person,
-            person
-        )
-    testcase.assertEqual(
-        client.session[Person.SESSION_KEY],
-        person.id,
-    )
+    ## client.previous_request is only available
+    ## in patched test client.
+    #if hasattr(client, 'previous_request'):
+        #testcase.assertEqual(
+            #client.previous_request.person,
+            #person
+        #)
+    #testcase.assertEqual(
+        #client.session[Person.SESSION_KEY],
+        #person.id,
+    #)
         
+def person_logged_in(**criteria):
+    def logged_in(client, response, testcase):
+        """ Check that the default person is logged in """
+        person = Person.objects.get(**criteria)
+        
+        # client.previous_request is only available
+        # in patched test client.
+        if hasattr(client, 'previous_request'):
+            testcase.assertEqual(
+                client.previous_request.person,
+                person
+            )
+        testcase.assertEqual(
+            client.session[Person.SESSION_KEY],
+            person.id,
+        )
+    return logged_in
+        
+    
+logged_in = person_logged_in(pk = 1)
+    
 def not_logged_in(client, response, testcase):
     """ Check that noone is logged in """
     # client.previous_request is only available

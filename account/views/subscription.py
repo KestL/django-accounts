@@ -26,7 +26,8 @@ def _email_cancel_error_to_admin(account, old_payment, new_payment=None):
             account.id,
             old_payment.gateway_token,
             getattr(new_payment, 'gateway_token', '(no new payment)')
-            )
+            ),
+        fail_silently = settings.EMAIL_FAIL_SILENTLY,
     )
     
 def _email_create_error_to_admin(account=None):
@@ -42,7 +43,8 @@ def _email_create_error_to_admin(account=None):
         """ % (
             getattr(account, 'name', '(No account yet)'),
             str(getattr(account, 'id', '(No account yet)')),
-            )
+            ),
+        fail_silently = settings.EMAIL_FAIL_SILENTLY,
     )
 
     
@@ -61,9 +63,23 @@ def edit_account(request):
     return helpers.render(
         request,
         'account/account_form.html',
-        {'form': form}
+        {
+            'form': form,
+            'subscription_levels': settings.SUBSCRIPTION_LEVELS,
+        }
     )
     
+def reactivate_free_account(request):
+    if request.method == 'POST':
+        if not request.account.subscription_level['price']:
+            request.account.active = True
+            request.account.save()
+        return HttpResponseRedirect('/')
+    else:
+        return helpers.render(
+            request,
+            'account/reactivate_free_form.html',
+        )
     
 def change_payment_method(request):
     if request.method == 'POST':
@@ -84,7 +100,9 @@ def change_payment_method(request):
                 # Change the DB records 
                 if old_payment: 
                     old_payment.delete()
+                    
                 new_payment.save()
+                request.account.save() # was changed by form.save_payment
                 
                 # Cancel the old recurring transaction:
                 try:
@@ -118,19 +136,31 @@ def change_payment_method(request):
     return helpers.render(
         request, 
         'account/payment_method_form.html', 
-        { 'form': form }
+        { 
+            'form': form, 
+            'recurring_payment': request.account.recurring_payment
+        }
     )
     
     
 
 def cancel_payment_method(request):
     payment = request.account.recurring_payment
-    if not payment:
-        raise Http404
     if request.method == 'POST':
         try:
-            payment.cancel()
-            payment.save()
+            if payment:
+                # If there is a payment, the account will be
+                # deactivated later, at the end of the payment period.
+                payment.cancel()
+                payment.save()
+            else:
+                # If there is no payment, that means the user
+                # was on a free account. The account is deactivated
+                # immediately
+                request.account.active = False
+                request.account.save()
+                return helpers.redirect(reactivate_free_account)
+            return helpers.redirect(edit_account)
         except (PaymentResponseError, HttpResponseServerError):
             _email_cancel_error_to_admin(
                 request.account,
@@ -142,15 +172,13 @@ def cancel_payment_method(request):
                 {'recurring_payment': payment}
             )
                 
-            
-        return helpers.render(
-            request, 
-            'account/payment_method_form.html', 
-        )
     else:
         return helpers.render(
             request, 
             'account/payment_cancel_form.html', 
+            {
+                'recurring_payment': payment,
+            }
         )
         
     
@@ -162,13 +190,19 @@ def upgrade(request, level):
     except (IndexError, ValueError):
         raise Http404
     
+    # You can't switch to the free plan without canceling the
+    # payment. That's more complexity than I want to deal with
+    # right now. 
+    if not subscription_level['price']:
+        return HttpResponseForbidden("Sorry, but you can't switch to the free plan.")
+    
     account = request.account
     if account.subscription_level_id == level:
         return HttpResponseForbidden()
     
     payment = request.account.recurring_payment
     
-    get_card_info = subscription_level.get('price') and not payment
+    get_card_info = subscription_level.get('price') and not payment or not payment.is_active()
     
     if request.method == 'POST':
         form = UpgradeForm(
@@ -178,7 +212,16 @@ def upgrade(request, level):
         if form.is_valid():
             try:
                 if get_card_info:
-                    payment = form.save_payment(account, subscription_level)
+                    new_payment = form.save_payment(
+                        account, 
+                        subscription_level,
+                        commit = False
+                    )
+                    if payment:
+                        payment.delete()
+                    new_payment.save()
+                    account.save()
+                    
                 else:
                     payment.change_amount(subscription_level['price'])
                     payment.save()
@@ -205,13 +248,21 @@ def upgrade(request, level):
         
     return render_to_response(
         'account/upgrade_form.html', 
-        {'form': form}
+        {
+            'form': form,
+            'subscription_level': subscription_level,
+            'requires_payment': get_card_info,
+        }
     )
 
     
     
     
     
+def _delete_if_exists(*records):
+    for record in records:
+        if record and record.id:
+            record.delete()
     
     
     
@@ -233,7 +284,7 @@ def create(request, level):
             request.POST,
         )
         if form.is_valid():
-            person, account = None, None
+            person, account, payment = None, None, None
             try:
                 account = form.save_account(level)
                 person = form.save_person(account)
@@ -246,11 +297,11 @@ def create(request, level):
                 )
             except ValueError:
                 # Either person or account could not be created.
-                if person and person.id:
-                    person.delete()
-                if account and account.id:
-                    account.delete()
-                    
+                Pass
+            except PaymentRequestError:
+                # The payment gateway rejected our request.
+                # Most likely a user input error.
+                pass
             except PaymentResponseError:
                 # The payment gateway returned an unknown response.
                 _email_create_error_to_admin()
@@ -258,11 +309,10 @@ def create(request, level):
                     request,
                     'account/payment_create_error.html'
                 )
-            
-            except PaymentRequestError:
-                # The payment gateway rejected our request.
-                # Most likely a user input error.
-                pass
+
+            # If everything wasn't created, delete it all. 
+            _delete_if_exists(person, account, payment)
+                
     else:
         form = SignupForm(
             get_card_info

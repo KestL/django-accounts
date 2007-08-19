@@ -127,6 +127,13 @@ def account_has_payment_method(client, parameters):
         active_on = PAYMENT_START,
     )
     return client, parameters
+
+def account_has_inactive_payment_method(client, parameters):
+    account_has_payment_method(client, parameters)
+    payment = Account.objects.get(pk = 1).recurring_payment
+    payment.deactivate()
+    payment.save()
+    return client, parameters
     
 domain = '%s.%s' % ('billybob', settings.ACCOUNT_DOMAINS[1][0])
 
@@ -331,6 +338,12 @@ class SubscriptionTests(IntegrationTest):
             ],
             [
                 effects.rendered('account/signup_form.html'),
+                effects.does_not_exist(Person, email = 'billybob@lala.net'),
+                effects.does_not_exist(
+                    Account, 
+                    subdomain = signup_params_no_cc['subdomain'],
+                    domain = signup_params_no_cc['domain'],
+                ),
                 effects.status(200)
             ]
         )
@@ -414,7 +427,7 @@ class SubscriptionTests(IntegrationTest):
     ############################
         
     def test_change_payment_method(self):
-        security.check(self, CHANGE_PM_PATH, causes.ssl)
+        security.check_account_inactive_ok(self, CHANGE_PM_PATH, causes.ssl)
         security.require_ssl(self, CHANGE_PM_PATH)
             
         #-------------------------------------------------
@@ -659,10 +672,11 @@ class SubscriptionTests(IntegrationTest):
         security.check(self, CANCEL_PM_PATH)
         
         #-------------------------------------------------
-        # If the account does NOT have a RecurringPayment, 404
+        # If the account does NOT have a RecurringPayment, 
+        # then the account is deactivated immediately.
         #-------------------------------------------------
         self.assertState(
-            'GET/POST',
+            'POST',
             CANCEL_PM_PATH,
             [
                 causes.valid_domain,
@@ -670,7 +684,8 @@ class SubscriptionTests(IntegrationTest):
                 account_has_no_payment_method,
             ],
             [
-                effects.status(404)
+                effects.field_value(Account, {'pk': 1}, active = False),
+                effects.redirected('/account/reactivate_free_account/')
             ]
         )
         
@@ -686,11 +701,29 @@ class SubscriptionTests(IntegrationTest):
                 account_has_payment_method,
             ],
             [
+                effects.field_value(Account, {'pk': 1}, active = True),
                 effects.rendered('account/payment_cancel_form.html'),
                 effects.status(200)
             ]
         )
         
+        #-------------------------------------------------
+        # If the account does not have a RecurringPayment, show the form
+        #-------------------------------------------------
+        self.assertState(
+            'GET',
+            CANCEL_PM_PATH,
+            [
+                causes.valid_domain,
+                causes.owner_logged_in,
+                account_has_no_payment_method,
+            ],
+            [
+                effects.field_value(Account, {'pk': 1}, active = True),
+                effects.rendered('account/payment_cancel_form.html'),
+                effects.status(200)
+            ]
+        )
             
         #-------------------------------------------------
         # If the form is posted, and a payment exists, the
@@ -708,8 +741,8 @@ class SubscriptionTests(IntegrationTest):
                 account_has_payment_method,
             ],
             [
-                effects.rendered('account/payment_method_form.html'),
-                effects.status(200),
+                effects.field_value(Account, {'pk': 1}, active = True),
+                effects.redirected('/account/'),
                 effects.count(1, RecurringPayment, account__pk = 1),
                 payment_is_inactive,
                 
@@ -730,6 +763,7 @@ class SubscriptionTests(IntegrationTest):
                 payment_response_error_on_cancel,
             ],
             [
+                effects.field_value(Account, {'pk': 1}, active = True),
                 effects.outbox_len(1),
                 effects.rendered('account/payment_cancel_error.html'),
                 effects.count(1, RecurringPayment, account__pk = 1),
@@ -811,6 +845,27 @@ class SubscriptionTests(IntegrationTest):
                 causes.valid_domain,
                 causes.owner_logged_in,
                 account_has_payment_method,
+            ],
+            [
+                gateway_change_called,
+                effects.redirected('/account/'),
+                subscription_level_is(2)
+            ]
+        )
+        #-------------------------------------------------
+        # If the account has an inactive RecurringPayment, 
+        # new CC info is required
+        #-------------------------------------------------
+        self.assertState(
+            'POST',
+            UPGRADE_PATH % 2,
+            [
+                causes.ssl,
+                account_has_subscription_level(1),
+                causes.valid_domain,
+                causes.owner_logged_in,
+                account_has_inactive_payment_method,
+                causes.params(**change_payment_method_params)
             ],
             [
                 gateway_change_called,
